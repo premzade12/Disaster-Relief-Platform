@@ -1,6 +1,6 @@
-# Disaster Assessment System
+# Disaster Relief Platform
 
-A full-stack web application for real-time disaster monitoring and reporting with AI-powered image analysis.
+A comprehensive full-stack web application for real-time disaster monitoring, reporting, and coordinated relief efforts with AI-powered image analysis, news verification, and NGO response coordination.
 
 ## 🚀 Features
 
@@ -9,6 +9,8 @@ A full-stack web application for real-time disaster monitoring and reporting wit
 - **User Reporting**: Easy-to-use form for submitting disaster reports
 - **Live Camera Capture**: Take photos directly from device camera or upload files
 - **Interactive Map**: Visual representation of disaster locations with real-time updates
+- **News Verification**: Cross-verify reports with news sources
+- **NGO Response Portal**: Coordinate emergency relief efforts
 - **Live Updates**: Dashboard refreshes every 5 seconds
 - **Responsive Design**: Modern UI with Tailwind CSS
 
@@ -17,16 +19,21 @@ A full-stack web application for real-time disaster monitoring and reporting wit
 - **Frontend**: React.js with Tailwind CSS
 - **Backend**: Flask with TensorFlow/Keras
 - **AI Model**: CNN for disaster image classification (Cyclone, Earthquake, Flood, Wildfire)
+- **Map Integration**: Leaflet.js for interactive mapping
+- **News API**: Mock verification system (ready for real API integration)
 
 ## 📁 Project Structure
 
 ```
-DisaterAssesment/
+Disaster-Relief-Platform/
 ├── client/                 # React frontend
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── ClientDashboard.js
-│   │   │   └── UserPortal.js
+│   │   │   ├── ClientDashboard.js    # Admin dashboard
+│   │   │   ├── UserPortal.js         # Report submission
+│   │   │   ├── LeafletMap.js         # Interactive map
+│   │   │   ├── NGODashboard.js       # NGO response portal
+│   │   │   └── CameraTest.js         # Camera testing
 │   │   ├── App.js
 │   │   └── index.js
 │   ├── public/
@@ -34,17 +41,29 @@ DisaterAssesment/
 ├── Flask/                  # Flask backend
 │   ├── templates/          # HTML templates (legacy)
 │   ├── app.py             # Original Flask app
-│   ├── app_enhanced.py    # Enhanced Flask app with API
-│   ├── disaster.h5        # AI model
+│   ├── app_working.py     # Enhanced Flask app with all APIs
+│   ├── disaster.h5        # AI model (not included - see setup)
 │   └── requirements.txt
-├── dataset/               # Training data
-└── Model Building/        # Jupyter notebooks
+├── dataset/               # Training data (not included - large files)
+├── Model Building/        # Jupyter notebooks
+├── start_system.bat       # Automated startup script
+└── README.md
 ```
 
 ## 🚀 Quick Start
 
+### Prerequisites
+- Python 3.8+
+- Node.js 16+
+- Git
+
 ### Option 1: Automated Setup (Recommended)
-1. Double-click `start_system.bat` to automatically install dependencies and start both servers
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/Disaster-Relief-Platform.git
+   cd Disaster-Relief-Platform
+   ```
+2. Double-click `start_system.bat` to automatically install dependencies and start both servers
 
 ### Option 2: Manual Setup
 
@@ -52,7 +71,7 @@ DisaterAssesment/
 ```bash
 cd Flask
 pip install -r requirements.txt
-python app_enhanced.py
+python app_working.py
 ```
 
 #### Frontend Setup
@@ -64,18 +83,18 @@ npm start
 
 ## 🌐 Access Points
 
-- **React Frontend**: http://localhost:3000
+- **Main Dashboard**: http://localhost:3000/ (Admin view with verification)
+- **NGO Portal**: http://localhost:3000/ngo (Relief coordination)
+- **Map View**: http://localhost:3000/map (Visual disaster locations)
+- **Report Form**: http://localhost:3000/report (Public reporting)
 - **Flask Backend**: http://localhost:5000
-- **API Endpoints**:
-  - `GET /api/reports` - Get all reports
-  - `GET /api/stats` - Get statistics
-  - `POST /api/report` - Submit new report
 
 ## 📱 Usage
 
 ### Dashboard View
 - View real-time statistics (total reports, verified emergencies, active NGOs)
 - Monitor live feed of disaster reports
+- Verify reports with news API
 - See AI classification results
 
 ### Map View
@@ -92,6 +111,12 @@ npm start
    - **📁 Upload File**: Select existing image from device
 4. Submit and receive instant AI feedback
 
+### NGO Response Portal
+1. View verified emergency reports
+2. Select a disaster to respond to
+3. Choose action type (Emergency Relief, Food Distribution, Medical Aid, etc.)
+4. Deploy resources and track operations
+
 ## 🤖 AI Model
 
 The system uses a Convolutional Neural Network trained to classify disaster images into:
@@ -100,49 +125,34 @@ The system uses a Convolutional Neural Network trained to classify disaster imag
 - **Flood**: Water-related disasters
 - **Wildfire**: Fire-related emergencies
 
+**Note**: The AI model file (`disaster.h5`) is not included in the repository due to size constraints. You'll need to train your own model or contact the repository owner.
+
 ## 🔧 API Documentation
 
-### GET /api/reports
-Returns array of all disaster reports
-```json
-[
-  {
-    "_id": 1,
-    "title": "Heavy Flooding",
-    "location": "Mumbai",
-    "disaster_type": "Flood",
-    "status": "Verified",
-    "timestamp": "2024-01-01T12:00:00"
-  }
-]
-```
+### Public Endpoints
+- `GET /api/reports` - Get all disaster reports
+- `GET /api/stats` - Get dashboard statistics
+- `POST /api/report` - Submit new disaster report with image
 
-### GET /api/stats
-Returns dashboard statistics
-```json
-{
-  "total_reports": 10,
-  "verified_emergencies": 7,
-  "active_ngos": 3
-}
-```
+### Verification Endpoints
+- `POST /api/verify-report/{id}` - Verify report with news API
 
-### POST /api/report
-Submit new disaster report with image
-- **Form Data**: title, location, description, image (file)
-- **Returns**: AI analysis result and report ID
+### NGO Endpoints
+- `GET /api/ngo/verified-reports` - Get news-verified disasters for NGOs
+- `POST /api/ngo/take-action` - NGO takes emergency action
+- `GET /api/ngo/actions` - Get all active relief operations
 
 ## 🛠️ Development
 
 ### Adding New Features
 1. **Frontend**: Add components in `client/src/components/`
-2. **Backend**: Add routes in `Flask/app_enhanced.py`
+2. **Backend**: Add routes in `Flask/app_working.py`
 3. **Styling**: Use Tailwind CSS classes
 
 ### Model Training
-- Training data is in `dataset/` folder
-- Jupyter notebook in `Model Building/` folder
-- Model saved as `disaster.h5`
+- Training data should be placed in `dataset/` folder
+- Use Jupyter notebook in `Model Building/` folder
+- Save trained model as `disaster.h5` in Flask/ directory
 
 ## 📋 Requirements
 
@@ -152,25 +162,39 @@ Submit new disaster report with image
 - TensorFlow 2.13.0
 - OpenCV 4.8.1
 - NumPy 1.24.3
+- flask-cors 4.0.0
+- requests (for news API)
 
 ### Frontend
 - Node.js 16+
 - React 18.2.0
 - Axios 1.6.0
+- React Router DOM 6.8.0
 - Tailwind CSS (via CDN)
 
 ## 🚨 Troubleshooting
 
 ### Common Issues
-1. **Port conflicts**: Change ports in package.json (React) or app_enhanced.py (Flask)
+1. **Port conflicts**: Change ports in package.json (React) or app_working.py (Flask)
 2. **Model loading errors**: Ensure disaster.h5 is in Flask/ directory
 3. **CORS errors**: flask-cors is installed and configured
 4. **Image upload fails**: Check file permissions and temp directory access
+5. **Camera not working**: Ensure HTTPS or localhost, check browser permissions
 
 ### Error Messages
 - "Backend not running": Start Flask server first
 - "No image provided": Ensure image is selected before submission
 - "Model prediction failed": Check image format (JPG, PNG supported)
+- "Camera access denied": Allow camera permissions in browser
+
+## 🌟 Key Features Workflow
+
+1. **User Reports** → Incident submitted via camera/upload
+2. **AI Analysis** → Disaster type classification
+3. **News Verification** → Cross-check with news sources
+4. **NGO Dashboard** → Verified incidents appear for NGOs
+5. **Emergency Response** → NGOs deploy resources and aid
+6. **Real-time Tracking** → Monitor all operations on map and dashboard
 
 ## 📄 License
 
@@ -179,10 +203,10 @@ This project is for educational purposes. Feel free to modify and distribute.
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch
-3. Make changes
-4. Test thoroughly
-5. Submit pull request
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## 📞 Support
 
@@ -191,3 +215,20 @@ For issues and questions:
 2. Review console logs
 3. Ensure all dependencies are installed
 4. Verify both servers are running
+5. Open an issue on GitHub
+
+## 🙏 Acknowledgments
+
+- OpenStreetMap for map data
+- Leaflet.js for mapping functionality
+- TensorFlow team for AI framework
+- React team for frontend framework
+- Flask team for backend framework
+
+---
+
+**⚠️ Important Notes:**
+- The AI model file is not included due to size constraints
+- Dataset is not included due to size constraints
+- This is a demonstration system - adapt for production use
+- News API integration is currently mocked - integrate with real news APIs for production

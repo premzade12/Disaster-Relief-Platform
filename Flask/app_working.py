@@ -76,7 +76,7 @@ stats = {
 
 @app.route('/')
 def home():
-    return jsonify({"message": "Disaster Assessment API is running!", "endpoints": ["/api/stats", "/api/reports", "/api/report"]})
+    return jsonify({"message": "Disaster Relief Platform API is running!", "endpoints": ["/api/stats", "/api/reports", "/api/report"]})
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
@@ -314,7 +314,7 @@ def verify_report_with_news(report_id):
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Disaster Assessment API...")
+    print("🚀 Starting Disaster Relief Platform API...")
     print("📍 Available endpoints:")
     print("   GET  /api/stats   - Dashboard statistics")
     print("   GET  /api/reports - All reports")
