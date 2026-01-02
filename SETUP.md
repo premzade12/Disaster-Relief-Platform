@@ -9,7 +9,7 @@
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/Disaster-Relief-Platform.git
+git clone https://github.com/premzade12/Disaster-Relief-Platform.git
 cd Disaster-Relief-Platform
 ```
 

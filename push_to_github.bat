@@ -13,7 +13,7 @@ git commit -m "Initial commit: Disaster Relief Platform with AI, Maps, and NGO C
 
 echo Step 4: Add remote repository...
 echo Please create a new repository on GitHub first, then run:
-echo git remote add origin https://github.com/YOUR_USERNAME/Disaster-Relief-Platform.git
+echo git remote add origin https://github.com/premzade12/Disaster-Relief-Platform.git
 echo.
 
 echo Step 5: Push to GitHub...

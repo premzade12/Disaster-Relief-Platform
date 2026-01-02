@@ -60,7 +60,7 @@ Disaster-Relief-Platform/
 ### Option 1: Automated Setup (Recommended)
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/Disaster-Relief-Platform.git
+   git clone https://github.com/premzade12/Disaster-Relief-Platform.git
    cd Disaster-Relief-Platform
    ```
 2. Double-click `start_system.bat` to automatically install dependencies and start both servers
