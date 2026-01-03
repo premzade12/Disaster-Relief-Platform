@@ -14,8 +14,8 @@ function ClientDashboard() {
 
   const fetchData = async () => {
     try {
-      const reportRes = await axios.get('http://127.0.0.1:5000/api/reports');
-      const statRes = await axios.get('http://127.0.0.1:5000/api/stats');
+      const reportRes = await axios.get('https://disaster-relief-platform-backend.onrender.com/api/reports');
+      const statRes = await axios.get('https://disaster-relief-platform-backend.onrender.com/api/stats');
       setReports(reportRes.data);
       setStats(statRes.data);
     } catch (err) {
@@ -26,7 +26,7 @@ function ClientDashboard() {
   const verifyReport = async (reportId) => {
     setVerifying({...verifying, [reportId]: true});
     try {
-      const response = await axios.post(`http://127.0.0.1:5000/api/verify-report/${reportId}`);
+      const response = await axios.post(`https://disaster-relief-platform-backend.onrender.com/api/verify-report/${reportId}`);
       if (response.data.success) {
         alert(`✅ Verification complete: ${response.data.updated_status}`);
         fetchData(); // Refresh data

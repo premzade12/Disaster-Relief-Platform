@@ -63,7 +63,7 @@ function LeafletMap() {
 
   const fetchReports = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:5000/api/reports');
+      const response = await axios.get('https://disaster-relief-platform-backend.onrender.com/api/reports');
       console.log('📋 Fetched reports:', response.data);
       setReports(response.data);
     } catch (err) {

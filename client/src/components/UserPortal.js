@@ -103,7 +103,7 @@ function UserPortal() {
       formDataToSend.append('image', selectedFile);
 
       // Submit report with file upload and AI analysis
-      const response = await axios.post('http://127.0.0.1:5000/api/report', formDataToSend, {
+      const response = await axios.post('https://disaster-relief-platform-backend.onrender.com/api/report', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

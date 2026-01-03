@@ -24,7 +24,7 @@ function NGODashboard() {
 
   const fetchVerifiedReports = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:5000/api/ngo/verified-reports');
+      const response = await axios.get('https://disaster-relief-platform-backend.onrender.com/api/ngo/verified-reports');
       setVerifiedReports(response.data);
     } catch (err) {
       console.error('Failed to fetch verified reports:', err);
@@ -33,7 +33,7 @@ function NGODashboard() {
 
   const fetchActions = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:5000/api/ngo/actions');
+      const response = await axios.get('https://disaster-relief-platform-backend.onrender.com/api/ngo/actions');
       setActions(response.data);
     } catch (err) {
       console.error('Failed to fetch actions:', err);
@@ -46,7 +46,7 @@ function NGODashboard() {
 
     setLoading(true);
     try {
-      const response = await axios.post('http://127.0.0.1:5000/api/ngo/take-action', {
+      const response = await axios.post('https://disaster-relief-platform-backend.onrender.com/api/ngo/take-action', {
         report_id: selectedReport._id,
         action_type: actionForm.action_type,
         resources: actionForm.resources,
