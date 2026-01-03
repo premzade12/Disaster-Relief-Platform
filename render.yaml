@@ -2,10 +2,10 @@ services:
   - type: web
     name: disaster-relief-frontend
     env: node
-    buildCommand: cd client && npm install && npm run build
+    buildCommand: chmod +x build.sh && ./build.sh
     startCommand: cd client && npx serve -s build -l 3000
     envVars:
       - key: NODE_VERSION
-        value: 18.17.0
+        value: 20.11.0
       - key: CI
         value: false
