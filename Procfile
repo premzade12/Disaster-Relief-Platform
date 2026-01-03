@@ -1,0 +1,1 @@
+web: cd Flask && python app_working.py

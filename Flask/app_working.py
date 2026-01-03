@@ -14,8 +14,13 @@ CORS(app, origins=["*", "https://disaster-relief-platform-frontend.onrender.com"
 
 # Loading the model
 try:
-    model = load_model(r"C:\Users\HP\OneDrive\Desktop\DisaterAssesment\Flask\disaster.h5")
-    print("✅ Model loaded successfully!")
+    model_path = os.path.join(os.path.dirname(__file__), 'disaster.h5')
+    if os.path.exists(model_path):
+        model = load_model(model_path)
+        print("✅ Model loaded successfully!")
+    else:
+        print("⚠️ Model file not found, running without AI")
+        model = None
 except Exception as e:
     print(f"❌ Error loading model: {e}")
     model = None
@@ -256,6 +261,137 @@ def take_ngo_action():
         report['response_actions'] = report.get('response_actions', []) + [action['id']]
         
         print(f"✅ NGO Action taken: {action_type} for report {report_id}")
+        
+        return jsonify({
+            'success': True,
+            'action_id': action['id'],
+            'message': f'Action "{action_type}" initiated successfully'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error taking NGO action: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ngo/actions', methods=['GET'])
+def get_ngo_actions():
+    """Get all NGO actions"""
+    return jsonify(ngo_actions)
+
+@app.route('/api/verify-report/<int:report_id>', methods=['POST'])
+def verify_report_with_news(report_id):
+    """Verify a report using news API"""
+    try:
+        report = next((r for r in reports if r['_id'] == report_id), None)
+        if not report:
+            return jsonify({'error': 'Report not found'}), 404
+        
+        verification_result = verify_with_news_api(
+            report['title'], 
+            report['location'], 
+            report['disaster_type']
+        )
+        
+        if verification_result['verified']:
+            report['status'] = 'Verified'
+            report['news_verified'] = True
+        else:
+            report['status'] = 'Unverified'
+            report['news_verified'] = False
+        
+        stats['verified_emergencies'] = len([r for r in reports if r['status'] == 'Verified'])
+        stats['news_verified'] = len([r for r in reports if r.get('news_verified', False)])
+        
+        return jsonify({
+            'success': True,
+            'verification_result': verification_result,
+            'updated_status': report['status']
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    print("🚀 Starting Disaster Relief Platform API...")
+    print("📍 Available endpoints:")
+    print("   GET  /api/stats   - Dashboard statistics")
+    print("   GET  /api/reports - All reports")
+    print("   POST /api/report  - Submit new report")
+    
+    port_env = os.environ.get('PORT', '5000')
+    port = int(port_env) if port_env and port_env.strip() else 5000
+    
+    print(f"🌐 Server will run on: http://0.0.0.0:{port}")
+    app.run(debug=False, host='0.0.0.0', port=port)
+        report['ngo_response'] = True
+        report['response_actions'] = report.get('response_actions', []) + [action['id']]
+        
+        print(f"✅ NGO Action taken: {action_type} for report {report_id}")
+        
+        return jsonify({
+            'success': True,
+            'action_id': action['id'],
+            'message': f'Action "{action_type}" initiated successfully'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error taking NGO action: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ngo/actions', methods=['GET'])
+def get_ngo_actions():
+    """Get all NGO actions"""
+    return jsonify(ngo_actions)
+
+@app.route('/api/verify-report/<int:report_id>', methods=['POST'])
+def verify_report_with_news(report_id):
+    """Verify a report using news API"""
+    try:
+        report = next((r for r in reports if r['_id'] == report_id), None)
+        if not report:
+            return jsonify({'error': 'Report not found'}), 404
+        
+        # Verify with news API
+        verification_result = verify_with_news_api(
+            report['title'], 
+            report['location'], 
+            report['disaster_type']
+        )
+        
+        # Update report based on verification
+        if verification_result['verified']:
+            report['status'] = 'Verified'
+            report['news_verified'] = True
+            report['verification_confidence'] = verification_result['confidence']
+        else:
+            report['status'] = 'Unverified'
+            report['news_verified'] = False
+        
+        # Update stats
+        stats['verified_emergencies'] = len([r for r in reports if r['status'] == 'Verified'])
+        stats['news_verified'] = len([r for r in reports if r.get('news_verified', False)])
+        stats['pending_verification'] = len([r for r in reports if r['status'] == 'Pending Verification'])
+        
+        print(f"🔍 Report {report_id} verification: {verification_result['verified']}")
+        
+        return jsonify({
+            'success': True,
+            'verification_result': verification_result,
+            'updated_status': report['status']
+        })
+        
+    except Exception as e:
+        print(f"❌ Error verifying report: {e}")
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    print("🚀 Starting Disaster Relief Platform API...")
+    print("📍 Available endpoints:")
+    print("   GET  /api/stats   - Dashboard statistics")
+    print("   GET  /api/reports - All reports")
+    print("   POST /api/report  - Submit new report")
+    port = int(os.environ.get('PORT', 5000))
+    print(f"🌐 Server will run on: http://0.0.0.0:{port}")
+    app.run(debug=False, host='0.0.0.0', port=port)ction taken: {action_type} for report {report_id}")
         
         return jsonify({
             'success': True,
