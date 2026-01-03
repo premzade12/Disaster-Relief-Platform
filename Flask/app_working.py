@@ -10,7 +10,7 @@ import requests
 import json
 
 app = Flask(__name__)
-CORS(app, origins=["*", "https://disaster-relief-platform-frontend.onrender.com"])  # Allow all origins for development
+CORS(app, origins=["*"])
 
 # Loading the model
 try:
@@ -68,7 +68,6 @@ reports = [
     }
 ]
 
-# NGO Actions storage
 ngo_actions = []
 
 stats = {
@@ -85,47 +84,32 @@ def home():
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
-    """Get dashboard statistics"""
-    print("📊 Stats requested")
     return jsonify(stats)
 
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
-    """Get all disaster reports"""
-    print(f"📋 Reports requested - returning {len(reports)} reports")
     return jsonify(reports)
 
 @app.route('/api/report', methods=['POST', 'OPTIONS'])
 def submit_report():
-    """Submit a new disaster report with AI analysis"""
     if request.method == 'OPTIONS':
         return '', 200
     
-    print("📝 New report submission received")
-    
     try:
-        # Get form data
         title = request.form.get('title')
         location = request.form.get('location')
         description = request.form.get('description')
         
-        print(f"Title: {title}, Location: {location}")
-        
         if 'image' not in request.files:
-            print("❌ No image provided")
             return jsonify({'error': 'No image provided'}), 400
 
         image = request.files['image']
         if image.filename == '':
-            print("❌ Invalid image filename")
             return jsonify({'error': 'Invalid image'}), 400
 
-        # Save the uploaded image temporarily
         temp_filename = secure_filename(image.filename)
         image.save(temp_filename)
-        print(f"💾 Image saved as: {temp_filename}")
 
-        # AI Analysis
         disaster_type = "Unknown"
         confidence = 0.5
         
@@ -141,18 +125,11 @@ def submit_report():
                 index = ['Cyclone', 'Earthquake', 'Flood', 'Wildfire']
                 disaster_type = index[result[0]]
                 confidence = float(np.max(predictions))
-                
-                print(f"🤖 AI Analysis: {disaster_type} ({confidence:.2%})")
             except Exception as e:
-                print(f"❌ AI Analysis failed: {e}")
                 disaster_type = "Analysis Failed"
-        else:
-            print("⚠️ Model not loaded, using default prediction")
         
-        # Create AI result message
         ai_result = f"Disaster Type: {disaster_type}\nConfidence: {confidence:.2%}\nAnalysis: The AI model has classified this image as showing signs of a {disaster_type.lower()}."
         
-        # Create new report
         new_report = {
             '_id': len(reports) + 1,
             'title': title,
@@ -164,22 +141,15 @@ def submit_report():
             'status': 'Verified' if confidence > 0.7 else 'Pending'
         }
         
-        # Add to reports list
         reports.append(new_report)
-        
-        # Update stats
         stats['total_reports'] = len(reports)
         if new_report['status'] == 'Verified':
             stats['verified_emergencies'] += 1
         
-        # Clean up temporary file
         try:
             os.remove(temp_filename)
-            print(f"🗑️ Cleaned up: {temp_filename}")
         except:
             pass
-        
-        print(f"✅ Report submitted successfully! ID: {new_report['_id']}")
         
         return jsonify({
             'success': True,
@@ -188,17 +158,10 @@ def submit_report():
         })
         
     except Exception as e:
-        print(f"❌ Error processing report: {e}")
         return jsonify({'error': str(e)}), 500
 
-# News verification function (mock implementation)
 def verify_with_news_api(title, location, disaster_type):
-    """Mock news verification - in production, use real news API"""
     try:
-        # Mock verification logic
-        keywords = [disaster_type.lower(), location.split(',')[0].lower()]
-        
-        # Simulate news API response
         mock_news_data = {
             'flood mumbai': True,
             'earthquake delhi': False,
@@ -218,17 +181,13 @@ def verify_with_news_api(title, location, disaster_type):
     except Exception as e:
         return {'verified': False, 'error': str(e)}
 
-# NGO Dashboard endpoints
 @app.route('/api/ngo/verified-reports', methods=['GET'])
 def get_verified_reports():
-    """Get only verified reports for NGO dashboard"""
     verified_reports = [r for r in reports if r['status'] == 'Verified' and r.get('news_verified', False)]
-    print(f"📋 NGO Dashboard - returning {len(verified_reports)} verified reports")
     return jsonify(verified_reports)
 
 @app.route('/api/ngo/take-action', methods=['POST'])
 def take_ngo_action():
-    """NGO takes action on a disaster report"""
     try:
         data = request.get_json()
         report_id = data.get('report_id')
@@ -236,12 +195,10 @@ def take_ngo_action():
         resources = data.get('resources', [])
         ngo_name = data.get('ngo_name', 'Anonymous NGO')
         
-        # Find the report
         report = next((r for r in reports if r['_id'] == report_id), None)
         if not report:
             return jsonify({'error': 'Report not found'}), 404
         
-        # Create action record
         action = {
             'id': len(ngo_actions) + 1,
             'report_id': report_id,
@@ -255,12 +212,8 @@ def take_ngo_action():
         }
         
         ngo_actions.append(action)
-        
-        # Update report status
         report['ngo_response'] = True
         report['response_actions'] = report.get('response_actions', []) + [action['id']]
-        
-        print(f"✅ NGO Action taken: {action_type} for report {report_id}")
         
         return jsonify({
             'success': True,
@@ -269,17 +222,14 @@ def take_ngo_action():
         })
         
     except Exception as e:
-        print(f"❌ Error taking NGO action: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/ngo/actions', methods=['GET'])
 def get_ngo_actions():
-    """Get all NGO actions"""
     return jsonify(ngo_actions)
 
 @app.route('/api/verify-report/<int:report_id>', methods=['POST'])
 def verify_report_with_news(report_id):
-    """Verify a report using news API"""
     try:
         report = next((r for r in reports if r['_id'] == report_id), None)
         if not report:
@@ -320,141 +270,5 @@ if __name__ == '__main__':
     port_env = os.environ.get('PORT', '5000')
     port = int(port_env) if port_env and port_env.strip() else 5000
     
-    print(f"🌐 Server will run on: http://0.0.0.0:{port}")
-    app.run(debug=False, host='0.0.0.0', port=port)
-        report['ngo_response'] = True
-        report['response_actions'] = report.get('response_actions', []) + [action['id']]
-        
-        print(f"✅ NGO Action taken: {action_type} for report {report_id}")
-        
-        return jsonify({
-            'success': True,
-            'action_id': action['id'],
-            'message': f'Action "{action_type}" initiated successfully'
-        })
-        
-    except Exception as e:
-        print(f"❌ Error taking NGO action: {e}")
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/ngo/actions', methods=['GET'])
-def get_ngo_actions():
-    """Get all NGO actions"""
-    return jsonify(ngo_actions)
-
-@app.route('/api/verify-report/<int:report_id>', methods=['POST'])
-def verify_report_with_news(report_id):
-    """Verify a report using news API"""
-    try:
-        report = next((r for r in reports if r['_id'] == report_id), None)
-        if not report:
-            return jsonify({'error': 'Report not found'}), 404
-        
-        # Verify with news API
-        verification_result = verify_with_news_api(
-            report['title'], 
-            report['location'], 
-            report['disaster_type']
-        )
-        
-        # Update report based on verification
-        if verification_result['verified']:
-            report['status'] = 'Verified'
-            report['news_verified'] = True
-            report['verification_confidence'] = verification_result['confidence']
-        else:
-            report['status'] = 'Unverified'
-            report['news_verified'] = False
-        
-        # Update stats
-        stats['verified_emergencies'] = len([r for r in reports if r['status'] == 'Verified'])
-        stats['news_verified'] = len([r for r in reports if r.get('news_verified', False)])
-        stats['pending_verification'] = len([r for r in reports if r['status'] == 'Pending Verification'])
-        
-        print(f"🔍 Report {report_id} verification: {verification_result['verified']}")
-        
-        return jsonify({
-            'success': True,
-            'verification_result': verification_result,
-            'updated_status': report['status']
-        })
-        
-    except Exception as e:
-        print(f"❌ Error verifying report: {e}")
-        return jsonify({'error': str(e)}), 500
-
-if __name__ == '__main__':
-    print("🚀 Starting Disaster Relief Platform API...")
-    print("📍 Available endpoints:")
-    print("   GET  /api/stats   - Dashboard statistics")
-    print("   GET  /api/reports - All reports")
-    print("   POST /api/report  - Submit new report")
-    port = int(os.environ.get('PORT', 5000))
-    print(f"🌐 Server will run on: http://0.0.0.0:{port}")
-    app.run(debug=False, host='0.0.0.0', port=port)ction taken: {action_type} for report {report_id}")
-        
-        return jsonify({
-            'success': True,
-            'action_id': action['id'],
-            'message': f'Action "{action_type}" initiated successfully'
-        })
-        
-    except Exception as e:
-        print(f"❌ Error taking NGO action: {e}")
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/ngo/actions', methods=['GET'])
-def get_ngo_actions():
-    """Get all NGO actions"""
-    return jsonify(ngo_actions)
-
-@app.route('/api/verify-report/<int:report_id>', methods=['POST'])
-def verify_report_with_news(report_id):
-    """Verify a report using news API"""
-    try:
-        report = next((r for r in reports if r['_id'] == report_id), None)
-        if not report:
-            return jsonify({'error': 'Report not found'}), 404
-        
-        # Verify with news API
-        verification_result = verify_with_news_api(
-            report['title'], 
-            report['location'], 
-            report['disaster_type']
-        )
-        
-        # Update report based on verification
-        if verification_result['verified']:
-            report['status'] = 'Verified'
-            report['news_verified'] = True
-            report['verification_confidence'] = verification_result['confidence']
-        else:
-            report['status'] = 'Unverified'
-            report['news_verified'] = False
-        
-        # Update stats
-        stats['verified_emergencies'] = len([r for r in reports if r['status'] == 'Verified'])
-        stats['news_verified'] = len([r for r in reports if r.get('news_verified', False)])
-        stats['pending_verification'] = len([r for r in reports if r['status'] == 'Pending Verification'])
-        
-        print(f"🔍 Report {report_id} verification: {verification_result['verified']}")
-        
-        return jsonify({
-            'success': True,
-            'verification_result': verification_result,
-            'updated_status': report['status']
-        })
-        
-    except Exception as e:
-        print(f"❌ Error verifying report: {e}")
-        return jsonify({'error': str(e)}), 500
-
-if __name__ == '__main__':
-    print("🚀 Starting Disaster Relief Platform API...")
-    print("📍 Available endpoints:")
-    print("   GET  /api/stats   - Dashboard statistics")
-    print("   GET  /api/reports - All reports")
-    print("   POST /api/report  - Submit new report")
-    port = int(os.environ.get('PORT', 5000))
     print(f"🌐 Server will run on: http://0.0.0.0:{port}")
     app.run(debug=False, host='0.0.0.0', port=port)
