@@ -319,5 +319,6 @@ if __name__ == '__main__':
     print("   GET  /api/stats   - Dashboard statistics")
     print("   GET  /api/reports - All reports")
     print("   POST /api/report  - Submit new report")
-    print("🌐 Server will run on: http://127.0.0.1:5000")
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    print(f"🌐 Server will run on: http://0.0.0.0:{port}")
+    app.run(debug=False, host='0.0.0.0', port=port)

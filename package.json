@@ -1,0 +1,11 @@
+{
+  "name": "disaster-relief-platform",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd client && npm install && npm run build",
+    "start": "cd client && npx serve -s build -p $PORT"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}

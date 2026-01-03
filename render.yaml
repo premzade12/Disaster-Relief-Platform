@@ -2,10 +2,13 @@ services:
   - type: web
     name: disaster-relief-frontend
     env: node
-    buildCommand: chmod +x build.sh && ./build.sh
+    buildCommand: cd client && npm install && node node_modules/react-scripts/bin/react-scripts.js build
     startCommand: cd client && npx serve -s build -l 3000
+    publishDir: ./client/build
     envVars:
       - key: NODE_VERSION
         value: 20.11.0
       - key: CI
+        value: false
+      - key: GENERATE_SOURCEMAP
         value: false
