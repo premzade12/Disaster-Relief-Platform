@@ -4,7 +4,6 @@ import ClientDashboard from './components/ClientDashboard';
 import UserPortal from './components/UserPortal';
 import LeafletMap from './components/LeafletMap';
 import NGODashboard from './components/NGODashboard';
-import CameraTest from './components/CameraTest';
 import './App.css';
 
 function App() {
@@ -19,7 +18,6 @@ function App() {
               <Link to="/map" className="hover:text-gray-300 transition">Map View</Link>
               <Link to="/ngo" className="hover:text-gray-300 transition">NGO Portal</Link>
               <Link to="/report" className="hover:text-gray-300 transition">Report Incident</Link>
-              <Link to="/camera-test" className="hover:text-gray-300 transition text-xs opacity-75">Camera Test</Link>
             </div>
           </div>
         </nav>
@@ -29,7 +27,6 @@ function App() {
           <Route path="/map" element={<LeafletMap />} />
           <Route path="/ngo" element={<NGODashboard />} />
           <Route path="/report" element={<UserPortal />} />
-          <Route path="/camera-test" element={<CameraTest />} />
         </Routes>
       </div>
     </Router>

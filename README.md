@@ -36,16 +36,13 @@ Disaster-Relief-Platform/
 │   │   │   ├── ClientDashboard.js    # Admin dashboard
 │   │   │   ├── UserPortal.js         # Report submission
 │   │   │   ├── LeafletMap.js         # Interactive map
-│   │   │   ├── NGODashboard.js       # NGO response portal
-│   │   │   └── CameraTest.js         # Camera testing
+│   │   │   └── NGODashboard.js       # NGO response portal
 │   │   ├── App.js
 │   │   └── index.js
 │   ├── public/
 │   └── package.json
 ├── Flask/                  # Flask backend
-│   ├── templates/          # HTML templates (legacy)
-│   ├── app.py             # Original Flask app
-│   ├── app_working.py     # Enhanced Flask app with all APIs
+│   ├── app_working.py     # Main Flask application
 │   ├── disaster.h5        # AI model (not included - see setup)
 │   └── requirements.txt
 ├── dataset/               # Training data (not included - large files)
