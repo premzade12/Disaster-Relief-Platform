@@ -10,7 +10,7 @@ import requests
 import json
 
 app = Flask(__name__)
-CORS(app, origins=["*"])  # Allow all origins for development
+CORS(app, origins=["*", "https://disaster-relief-platform-frontend.onrender.com"])  # Allow all origins for development
 
 # Loading the model
 try:
