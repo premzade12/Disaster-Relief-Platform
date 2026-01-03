@@ -17,12 +17,12 @@ try:
     model_path = os.path.join(os.path.dirname(__file__), 'disaster.h5')
     if os.path.exists(model_path):
         model = load_model(model_path)
-        print("✅ Model loaded successfully!")
+        print("Model loaded successfully!")
     else:
-        print("⚠️ Model file not found, running without AI")
+        print("Model file not found, running without AI")
         model = None
 except Exception as e:
-    print(f"❌ Error loading model: {e}")
+    print(f"Error loading model: {e}")
     model = None
 
 # In-memory storage for reports and actions
@@ -261,8 +261,8 @@ def verify_report_with_news(report_id):
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Disaster Relief Platform API...")
-    print("📍 Available endpoints:")
+    print("Starting Disaster Relief Platform API...")
+    print("Available endpoints:")
     print("   GET  /api/stats   - Dashboard statistics")
     print("   GET  /api/reports - All reports")
     print("   POST /api/report  - Submit new report")
@@ -270,5 +270,5 @@ if __name__ == '__main__':
     port_env = os.environ.get('PORT', '5000')
     port = int(port_env) if port_env and port_env.strip() else 5000
     
-    print(f"🌐 Server will run on: http://0.0.0.0:{port}")
+    print(f"Server will run on: http://0.0.0.0:{port}")
     app.run(debug=False, host='0.0.0.0', port=port)
