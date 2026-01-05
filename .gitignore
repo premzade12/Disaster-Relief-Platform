@@ -1,59 +1,29 @@
-# Dependencies
-node_modules/
-client/node_modules/
+# Environment variables
+.env
+*.env
 
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
 env/
 venv/
-ENV/
-env.bak/
-venv.bak/
+.venv/
 
-# Flask
-instance/
-.webassets-cache
-
-# AI Model (large file)
+# Model files
 *.h5
-*.keras
+*.pkl
 
-# Dataset (large files)
-dataset/
+# Temporary files
+*.tmp
+*.log
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-logs/
-
-# Temporary files
-*.tmp
-temp/
-
-# Build outputs
-client/build/
-client/dist/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Package locks (optional - you can include these)
-# package-lock.json
-# yarn.lock

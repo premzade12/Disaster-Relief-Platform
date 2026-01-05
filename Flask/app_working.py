@@ -16,12 +16,17 @@ CORS(app, origins=["*"])
 
 # MongoDB Atlas connection
 try:
-    MONGO_URI = os.environ.get('MONGO_URI', 'mongodb+srv://username:password@cluster.mongodb.net/disaster_relief?retryWrites=true&w=majority')
-    client = MongoClient(MONGO_URI)
-    db = client.disaster_relief
-    reports_collection = db.reports
-    actions_collection = db.ngo_actions
-    print("✅ MongoDB Atlas connected successfully!")
+    MONGO_URI = os.environ.get('MONGO_URI')
+    if not MONGO_URI:
+        print("❌ MONGO_URI environment variable not set")
+        client = None
+        db = None
+    else:
+        client = MongoClient(MONGO_URI)
+        db = client.disaster_relief
+        reports_collection = db.reports
+        actions_collection = db.ngo_actions
+        print("✅ MongoDB Atlas connected successfully!")
 except Exception as e:
     print(f"❌ MongoDB connection error: {e}")
     client = None
