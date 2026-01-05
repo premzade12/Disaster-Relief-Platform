@@ -8,7 +8,7 @@
 
 **A comprehensive full-stack web application for real-time disaster monitoring, reporting, and coordinated relief efforts with AI-powered image analysis, news verification, and NGO response coordination.**
 
-[🌐 Live Demo](#-access-points) • [📖 Documentation](#-api-documentation) • [🚀 Quick Start](#-quick-start) • [🤝 Contributing](#-contributing)
+[🌐 Live Demo](https://disaster-relief-platform-frontend.onrender.com/) • [📖 Documentation](#-api-documentation) • [🚀 Quick Start](#-quick-start) • [🤝 Contributing](#-contributing)
 
 </div>
 
@@ -187,6 +187,7 @@ npm start
 
 | Portal | URL | Description |
 |--------|-----|-------------|
+| 🌐 **Live Demo** | https://disaster-relief-platform-frontend.onrender.com/ | **Hosted Application - Try it now!** |
 | 📊 **Admin Dashboard** | http://localhost:3000/ | Monitor all reports, verify with news API |
 | 🗺️ **Interactive Map** | http://localhost:3000/map | Visual disaster locations (fully verified only) |
 | 🏥 **NGO Portal** | http://localhost:3000/ngo | Relief coordination (fully verified disasters) |
@@ -530,8 +531,16 @@ Tailwind CSS (CDN)
 | **"Camera access denied"** | Browser permissions | Allow camera in browser settings |
 | **"Backend not running"** | Flask server down | Run `python app_working.py` |
 | **"CORS errors"** | Cross-origin issues | Check flask-cors installation |
+| **"PyTorch >= 2.1 required"** | Version compatibility | Update PyTorch: `pip install torch>=2.1.0` |
+| **"TensorFlow GPU warnings"** | CUDA not found | Normal on CPU-only servers (Render) |
 
 </details>
+
+### 🌐 **Deployment Notes**
+- **Live Demo**: Frontend deployed successfully on Render
+- **Backend Status**: CNN model ✅ loaded, BERT model ⚠️ (fallback to keyword matching)
+- **Current Functionality**: Image classification working, text analysis using keyword fallback
+- **Production Fix**: Updated PyTorch to >= 2.1.0 in requirements.txt
 
 ---
 

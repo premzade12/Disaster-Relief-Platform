@@ -11,6 +11,18 @@ import json
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 
+# Check PyTorch version compatibility
+try:
+    pytorch_version = torch.__version__
+    major, minor = map(int, pytorch_version.split('.')[:2])
+    if major < 2 or (major == 2 and minor < 1):
+        print(f"⚠️ PyTorch version {pytorch_version} detected. BERT requires >= 2.1.0")
+        print("Disabling PyTorch because PyTorch >= 2.1 is required but found", pytorch_version)
+        torch = None
+except Exception as e:
+    print(f"❌ PyTorch import error: {e}")
+    torch = None
+
 app = Flask(__name__)
 CORS(app, origins=["*"])
 
@@ -30,15 +42,20 @@ except Exception as e:
 
 try:
     # BERT Model for text classification
-    bert_model_path = os.path.join(os.path.dirname(__file__), '..', 'final_model')
-    if os.path.exists(bert_model_path):
-        bert_tokenizer = AutoTokenizer.from_pretrained(bert_model_path)
-        bert_model = AutoModelForSequenceClassification.from_pretrained(bert_model_path)
-        print("✅ BERT Model loaded successfully!")
-    else:
-        print("❌ BERT Model path not found")
+    if torch is None:
+        print("❌ BERT Model disabled: PyTorch not available or incompatible version")
         bert_model = None
         bert_tokenizer = None
+    else:
+        bert_model_path = os.path.join(os.path.dirname(__file__), '..', 'final_model')
+        if os.path.exists(bert_model_path):
+            bert_tokenizer = AutoTokenizer.from_pretrained(bert_model_path)
+            bert_model = AutoModelForSequenceClassification.from_pretrained(bert_model_path)
+            print("✅ BERT Model loaded successfully!")
+        else:
+            print("❌ BERT Model path not found")
+            bert_model = None
+            bert_tokenizer = None
 except Exception as e:
     print(f"❌ Error loading BERT model: {e}")
     bert_model = None
@@ -195,11 +212,11 @@ def submit_report():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# BERT text classification function
 def classify_text_with_bert(title, description):
     """Classify disaster type from title and description using BERT"""
-    if bert_model is None or bert_tokenizer is None:
-        return {'disaster_type': 'Unknown', 'confidence': 0.0, 'error': 'BERT model not loaded'}
+    if bert_model is None or bert_tokenizer is None or torch is None:
+        # Fallback to simple keyword-based classification
+        return classify_text_fallback(title, description)
     
     try:
         # Combine title and description
@@ -225,7 +242,23 @@ def classify_text_with_bert(title, description):
             'method': 'BERT'
         }
     except Exception as e:
-        return {'disaster_type': 'Unknown', 'confidence': 0.0, 'error': str(e)}
+        return classify_text_fallback(title, description)
+
+def classify_text_fallback(title, description):
+    """Fallback text classification using keyword matching"""
+    text = f"{title} {description}".lower()
+    
+    # Keyword-based classification
+    if any(word in text for word in ['flood', 'water', 'submerged', 'inundated', 'overflow']):
+        return {'disaster_type': 'Flood', 'confidence': 0.75, 'method': 'Keyword'}
+    elif any(word in text for word in ['earthquake', 'tremor', 'seismic', 'quake', 'shake']):
+        return {'disaster_type': 'Earthquake', 'confidence': 0.75, 'method': 'Keyword'}
+    elif any(word in text for word in ['cyclone', 'hurricane', 'storm', 'typhoon', 'wind']):
+        return {'disaster_type': 'Cyclone', 'confidence': 0.75, 'method': 'Keyword'}
+    elif any(word in text for word in ['fire', 'wildfire', 'burn', 'smoke', 'flame']):
+        return {'disaster_type': 'Wildfire', 'confidence': 0.75, 'method': 'Keyword'}
+    else:
+        return {'disaster_type': 'Unknown', 'confidence': 0.5, 'method': 'Keyword'}
 
 def verify_with_news_api(title, location, disaster_type):
     """Mock news verification - in production, use real news API"""
