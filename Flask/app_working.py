@@ -21,16 +21,23 @@ try:
         print("❌ MONGO_URI environment variable not set")
         client = None
         db = None
+        reports_collection = None
+        actions_collection = None
     else:
         client = MongoClient(MONGO_URI)
+        # Test connection
+        client.admin.command('ping')
         db = client.disaster_relief
         reports_collection = db.reports
         actions_collection = db.ngo_actions
         print("✅ MongoDB Atlas connected successfully!")
 except Exception as e:
     print(f"❌ MongoDB connection error: {e}")
+    print("⚠️ Check your MongoDB credentials in MONGO_URI environment variable")
     client = None
     db = None
+    reports_collection = None
+    actions_collection = None
 
 # Disable transformers and PyTorch to avoid compatibility issues
 bert_model = None
@@ -54,37 +61,48 @@ except Exception as e:
 
 # Initialize with sample data if database is empty
 def init_sample_data():
-    if db is not None and reports_collection.count_documents({}) == 0:
-        sample_reports = [
-            {
-                'title': 'Heavy Flooding in Downtown Area',
-                'location': 'Mumbai, Maharashtra',
-                'description': 'Severe flooding reported in commercial district',
-                'disaster_type': 'Flood',
-                'source': 'User Report',
-                'timestamp': datetime.now(),
-                'status': 'Verified',
-                'coordinates': {'lat': 19.0760, 'lng': 72.8777},
-                'news_verified': True,
-                'final_verified': True,
-                'severity': 'High'
-            },
-            {
-                'title': 'Earthquake Tremors Felt',
-                'location': 'Delhi, India',
-                'description': 'Mild earthquake tremors reported by residents',
-                'disaster_type': 'Earthquake',
-                'source': 'User Report',
-                'timestamp': datetime.now(),
-                'status': 'Pending Verification',
-                'coordinates': {'lat': 28.7041, 'lng': 77.1025},
-                'news_verified': False,
-                'final_verified': False,
-                'severity': 'Medium'
-            }
-        ]
-        reports_collection.insert_many(sample_reports)
-        print("✅ Sample data initialized")
+    try:
+        if db is not None:
+            # Test if we can actually query the database
+            count = reports_collection.count_documents({})
+            if count == 0:
+                sample_reports = [
+                    {
+                        'title': 'Heavy Flooding in Downtown Area',
+                        'location': 'Mumbai, Maharashtra',
+                        'description': 'Severe flooding reported in commercial district',
+                        'disaster_type': 'Flood',
+                        'source': 'User Report',
+                        'timestamp': datetime.now(),
+                        'status': 'Verified',
+                        'coordinates': {'lat': 19.0760, 'lng': 72.8777},
+                        'news_verified': True,
+                        'final_verified': True,
+                        'severity': 'High'
+                    },
+                    {
+                        'title': 'Earthquake Tremors Felt',
+                        'location': 'Delhi, India',
+                        'description': 'Mild earthquake tremors reported by residents',
+                        'disaster_type': 'Earthquake',
+                        'source': 'User Report',
+                        'timestamp': datetime.now(),
+                        'status': 'Pending Verification',
+                        'coordinates': {'lat': 28.7041, 'lng': 77.1025},
+                        'news_verified': False,
+                        'final_verified': False,
+                        'severity': 'Medium'
+                    }
+                ]
+                reports_collection.insert_many(sample_reports)
+                print("✅ Sample data initialized")
+            else:
+                print(f"✅ Database already has {count} reports")
+        else:
+            print("⚠️ Database not available - running without persistent storage")
+    except Exception as e:
+        print(f"❌ Database initialization failed: {e}")
+        print("⚠️ App will continue without database - check MongoDB credentials")
 
 init_sample_data()
 
