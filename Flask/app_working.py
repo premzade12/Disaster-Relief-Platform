@@ -8,9 +8,24 @@ import os
 from datetime import datetime
 import requests
 import json
+from pymongo import MongoClient
+from bson import ObjectId
 
 app = Flask(__name__)
 CORS(app, origins=["*"])
+
+# MongoDB Atlas connection
+try:
+    MONGO_URI = os.environ.get('MONGO_URI', 'mongodb+srv://username:password@cluster.mongodb.net/disaster_relief?retryWrites=true&w=majority')
+    client = MongoClient(MONGO_URI)
+    db = client.disaster_relief
+    reports_collection = db.reports
+    actions_collection = db.ngo_actions
+    print("✅ MongoDB Atlas connected successfully!")
+except Exception as e:
+    print(f"❌ MongoDB connection error: {e}")
+    client = None
+    db = None
 
 # Disable transformers and PyTorch to avoid compatibility issues
 bert_model = None
@@ -32,58 +47,41 @@ except Exception as e:
     print(f"❌ Error loading CNN model: {e}")
     cnn_model = None
 
-# In-memory storage for reports and actions
-reports = [
-    {
-        '_id': 1,
-        'title': 'Heavy Flooding in Downtown Area',
-        'location': 'Mumbai, Maharashtra',
-        'description': 'Severe flooding reported in commercial district',
-        'disaster_type': 'Flood',
-        'source': 'User Report',
-        'timestamp': datetime.now().isoformat(),
-        'status': 'Verified',
-        'coordinates': {'lat': 19.0760, 'lng': 72.8777},
-        'news_verified': True,
-        'severity': 'High'
-    },
-    {
-        '_id': 2,
-        'title': 'Earthquake Tremors Felt',
-        'location': 'Delhi, India',
-        'description': 'Mild earthquake tremors reported by residents',
-        'disaster_type': 'Earthquake',
-        'source': 'User Report',
-        'timestamp': datetime.now().isoformat(),
-        'status': 'Pending Verification',
-        'coordinates': {'lat': 28.7041, 'lng': 77.1025},
-        'news_verified': False,
-        'severity': 'Medium'
-    },
-    {
-        '_id': 3,
-        'title': 'Wildfire Spreading Rapidly',
-        'location': 'Bangalore, Karnataka',
-        'description': 'Forest fire reported in outskirts',
-        'disaster_type': 'Wildfire',
-        'source': 'User Report',
-        'timestamp': datetime.now().isoformat(),
-        'status': 'Verified',
-        'coordinates': {'lat': 12.9716, 'lng': 77.5946},
-        'news_verified': True,
-        'severity': 'High'
-    }
-]
+# Initialize with sample data if database is empty
+def init_sample_data():
+    if db and reports_collection.count_documents({}) == 0:
+        sample_reports = [
+            {
+                'title': 'Heavy Flooding in Downtown Area',
+                'location': 'Mumbai, Maharashtra',
+                'description': 'Severe flooding reported in commercial district',
+                'disaster_type': 'Flood',
+                'source': 'User Report',
+                'timestamp': datetime.now(),
+                'status': 'Verified',
+                'coordinates': {'lat': 19.0760, 'lng': 72.8777},
+                'news_verified': True,
+                'final_verified': True,
+                'severity': 'High'
+            },
+            {
+                'title': 'Earthquake Tremors Felt',
+                'location': 'Delhi, India',
+                'description': 'Mild earthquake tremors reported by residents',
+                'disaster_type': 'Earthquake',
+                'source': 'User Report',
+                'timestamp': datetime.now(),
+                'status': 'Pending Verification',
+                'coordinates': {'lat': 28.7041, 'lng': 77.1025},
+                'news_verified': False,
+                'final_verified': False,
+                'severity': 'Medium'
+            }
+        ]
+        reports_collection.insert_many(sample_reports)
+        print("✅ Sample data initialized")
 
-ngo_actions = []
-
-stats = {
-    "total_reports": len(reports),
-    "verified_emergencies": len([r for r in reports if r['status'] == 'Verified']),
-    "active_ngos": 3,
-    "pending_verification": len([r for r in reports if r['status'] == 'Pending Verification']),
-    "news_verified": len([r for r in reports if r.get('news_verified', False)])
-}
+init_sample_data()
 
 @app.route('/')
 def home():
@@ -91,10 +89,33 @@ def home():
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
+    if not db:
+        return jsonify({"error": "Database not connected"}), 500
+    
+    total_reports = reports_collection.count_documents({})
+    verified_emergencies = reports_collection.count_documents({"final_verified": True})
+    pending_verification = reports_collection.count_documents({"status": "Pending Verification"})
+    news_verified = reports_collection.count_documents({"news_verified": True})
+    
+    stats = {
+        "total_reports": total_reports,
+        "verified_emergencies": verified_emergencies,
+        "active_ngos": 3,
+        "pending_verification": pending_verification,
+        "news_verified": news_verified
+    }
     return jsonify(stats)
 
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
+    if not db:
+        return jsonify({"error": "Database not connected"}), 500
+    
+    reports = list(reports_collection.find({}))
+    for report in reports:
+        report['_id'] = str(report['_id'])
+        if isinstance(report.get('timestamp'), datetime):
+            report['timestamp'] = report['timestamp'].isoformat()
     return jsonify(reports)
 
 @app.route('/api/report', methods=['POST', 'OPTIONS'])
@@ -148,7 +169,6 @@ def submit_report():
         ai_result = f"CNN Analysis: {cnn_disaster_type} ({cnn_confidence:.2%})\nKeyword Analysis: {bert_disaster_type} ({bert_confidence:.2%})\nModels Agree: {'Yes' if models_agree else 'No'}\nFinal Classification: {final_disaster_type}"
         
         new_report = {
-            '_id': len(reports) + 1,
             'title': title,
             'location': location,
             'description': description,
@@ -159,15 +179,17 @@ def submit_report():
             'models_agree': models_agree,
             'disaster_type': final_disaster_type,
             'source': 'User Report',
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': datetime.now(),
             'status': 'Pending Verification',
             'news_verified': False,
             'final_verified': False
         }
         
-        reports.append(new_report)
-        stats['total_reports'] = len(reports)
-        stats['pending_verification'] = len([r for r in reports if r['status'] == 'Pending Verification'])
+        if db:
+            result = reports_collection.insert_one(new_report)
+            report_id = str(result.inserted_id)
+        else:
+            report_id = "no_db"
         
         try:
             os.remove(temp_filename)
@@ -177,7 +199,7 @@ def submit_report():
         return jsonify({
             'success': True,
             'ai_result': ai_result,
-            'report_id': new_report['_id']
+            'report_id': report_id
         })
         
     except Exception as e:
@@ -227,12 +249,22 @@ def verify_with_news_api(title, location, disaster_type):
 
 @app.route('/api/ngo/verified-reports', methods=['GET'])
 def get_verified_reports():
-    """Get only fully verified reports (CNN + BERT + News) for NGO dashboard"""
-    verified_reports = [r for r in reports if r.get('final_verified', False)]
+    """Get only fully verified reports for NGO dashboard"""
+    if not db:
+        return jsonify({"error": "Database not connected"}), 500
+    
+    verified_reports = list(reports_collection.find({"final_verified": True}))
+    for report in verified_reports:
+        report['_id'] = str(report['_id'])
+        if isinstance(report.get('timestamp'), datetime):
+            report['timestamp'] = report['timestamp'].isoformat()
     return jsonify(verified_reports)
 
 @app.route('/api/ngo/take-action', methods=['POST'])
 def take_ngo_action():
+    if not db:
+        return jsonify({"error": "Database not connected"}), 500
+        
     try:
         data = request.get_json()
         report_id = data.get('report_id')
@@ -240,29 +272,32 @@ def take_ngo_action():
         resources = data.get('resources', [])
         ngo_name = data.get('ngo_name', 'Anonymous NGO')
         
-        report = next((r for r in reports if r['_id'] == report_id), None)
+        report = reports_collection.find_one({"_id": ObjectId(report_id)})
         if not report:
             return jsonify({'error': 'Report not found'}), 404
         
         action = {
-            'id': len(ngo_actions) + 1,
             'report_id': report_id,
             'ngo_name': ngo_name,
             'action_type': action_type,
             'resources': resources,
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': datetime.now(),
             'status': 'Active',
             'location': report['location'],
             'disaster_type': report['disaster_type']
         }
         
-        ngo_actions.append(action)
-        report['ngo_response'] = True
-        report['response_actions'] = report.get('response_actions', []) + [action['id']]
+        result = actions_collection.insert_one(action)
+        action_id = str(result.inserted_id)
+        
+        reports_collection.update_one(
+            {"_id": ObjectId(report_id)},
+            {"$set": {"ngo_response": True}}
+        )
         
         return jsonify({
             'success': True,
-            'action_id': action['id'],
+            'action_id': action_id,
             'message': f'Action "{action_type}" initiated successfully'
         })
         
@@ -271,17 +306,27 @@ def take_ngo_action():
 
 @app.route('/api/ngo/actions', methods=['GET'])
 def get_ngo_actions():
-    return jsonify(ngo_actions)
+    if not db:
+        return jsonify({"error": "Database not connected"}), 500
+    
+    actions = list(actions_collection.find({}))
+    for action in actions:
+        action['_id'] = str(action['_id'])
+        if isinstance(action.get('timestamp'), datetime):
+            action['timestamp'] = action['timestamp'].isoformat()
+    return jsonify(actions)
 
-@app.route('/api/verify-report/<int:report_id>', methods=['POST'])
+@app.route('/api/verify-report/<report_id>', methods=['POST'])
 def verify_report_with_news(report_id):
     """Verify a report using news API and update final verification status"""
+    if not db:
+        return jsonify({"error": "Database not connected"}), 500
+        
     try:
-        report = next((r for r in reports if r['_id'] == report_id), None)
+        report = reports_collection.find_one({"_id": ObjectId(report_id)})
         if not report:
             return jsonify({'error': 'Report not found'}), 404
         
-        # Use the disaster type from model consensus for news verification
         disaster_type_for_news = report.get('cnn_prediction', 'Unknown')
         if report.get('models_agree', False):
             disaster_type_for_news = report.get('disaster_type', 'Unknown')
@@ -292,32 +337,34 @@ def verify_report_with_news(report_id):
             disaster_type_for_news
         )
         
-        # Update news verification status
-        report['news_verified'] = verification_result['verified']
-        report['news_confidence'] = verification_result['confidence']
+        # Update report in MongoDB
+        update_data = {
+            'news_verified': verification_result['verified'],
+            'news_confidence': verification_result['confidence']
+        }
         
-        # Final verification: CNN + BERT agree + News verified
+        # Final verification logic
         if (report.get('models_agree', False) and 
-            report.get('news_verified', False) and 
+            verification_result['verified'] and 
             report.get('cnn_confidence', 0) > 0.6 and 
             report.get('bert_confidence', 0) > 0.6):
-            report['final_verified'] = True
-            report['status'] = 'Fully Verified'
+            update_data['final_verified'] = True
+            update_data['status'] = 'Fully Verified'
         else:
-            report['final_verified'] = False
-            report['status'] = 'Partially Verified' if report.get('news_verified', False) else 'Unverified'
+            update_data['final_verified'] = False
+            update_data['status'] = 'Partially Verified' if verification_result['verified'] else 'Unverified'
         
-        # Update stats
-        stats['verified_emergencies'] = len([r for r in reports if r.get('final_verified', False)])
-        stats['news_verified'] = len([r for r in reports if r.get('news_verified', False)])
-        stats['pending_verification'] = len([r for r in reports if r['status'] == 'Pending Verification'])
+        reports_collection.update_one(
+            {"_id": ObjectId(report_id)},
+            {"$set": update_data}
+        )
         
         return jsonify({
             'success': True,
             'verification_result': verification_result,
             'models_agree': report.get('models_agree', False),
-            'final_verified': report.get('final_verified', False),
-            'updated_status': report['status']
+            'final_verified': update_data.get('final_verified', False),
+            'updated_status': update_data['status']
         })
         
     except Exception as e:
