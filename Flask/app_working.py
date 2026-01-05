@@ -8,27 +8,19 @@ import os
 from datetime import datetime
 import requests
 import json
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import torch
-
-# Check PyTorch version compatibility
-try:
-    pytorch_version = torch.__version__
-    major, minor = map(int, pytorch_version.split('.')[:2])
-    if major < 2 or (major == 2 and minor < 1):
-        print(f"⚠️ PyTorch version {pytorch_version} detected. BERT requires >= 2.1.0")
-        print("Disabling PyTorch because PyTorch >= 2.1 is required but found", pytorch_version)
-        torch = None
-except Exception as e:
-    print(f"❌ PyTorch import error: {e}")
-    torch = None
 
 app = Flask(__name__)
 CORS(app, origins=["*"])
 
-# Loading the models
+# Disable transformers and PyTorch to avoid compatibility issues
+bert_model = None
+bert_tokenizer = None
+torch = None
+print("⚠️ BERT model disabled to avoid PyTorch/Transformers compatibility issues")
+print("📝 Using keyword-based text classification instead")
+
+# CNN Model loading only
 try:
-    # CNN Model for image classification
     model_path = os.path.join(os.path.dirname(__file__), 'disaster.h5')
     if os.path.exists(model_path):
         cnn_model = load_model(model_path)
@@ -39,27 +31,6 @@ try:
 except Exception as e:
     print(f"❌ Error loading CNN model: {e}")
     cnn_model = None
-
-try:
-    # BERT Model for text classification
-    if torch is None:
-        print("❌ BERT Model disabled: PyTorch not available or incompatible version")
-        bert_model = None
-        bert_tokenizer = None
-    else:
-        bert_model_path = os.path.join(os.path.dirname(__file__), '..', 'final_model')
-        if os.path.exists(bert_model_path):
-            bert_tokenizer = AutoTokenizer.from_pretrained(bert_model_path)
-            bert_model = AutoModelForSequenceClassification.from_pretrained(bert_model_path)
-            print("✅ BERT Model loaded successfully!")
-        else:
-            print("❌ BERT Model path not found")
-            bert_model = None
-            bert_tokenizer = None
-except Exception as e:
-    print(f"❌ Error loading BERT model: {e}")
-    bert_model = None
-    bert_tokenizer = None
 
 # In-memory storage for reports and actions
 reports = [
@@ -174,7 +145,7 @@ def submit_report():
         models_agree = cnn_disaster_type.lower() == bert_disaster_type.lower()
         final_disaster_type = cnn_disaster_type if models_agree else "Conflicting"
         
-        ai_result = f"CNN Analysis: {cnn_disaster_type} ({cnn_confidence:.2%})\nBERT Analysis: {bert_disaster_type} ({bert_confidence:.2%})\nModels Agree: {'Yes' if models_agree else 'No'}\nFinal Classification: {final_disaster_type}"
+        ai_result = f"CNN Analysis: {cnn_disaster_type} ({cnn_confidence:.2%})\nKeyword Analysis: {bert_disaster_type} ({bert_confidence:.2%})\nModels Agree: {'Yes' if models_agree else 'No'}\nFinal Classification: {final_disaster_type}"
         
         new_report = {
             '_id': len(reports) + 1,
@@ -213,39 +184,11 @@ def submit_report():
         return jsonify({'error': str(e)}), 500
 
 def classify_text_with_bert(title, description):
-    """Classify disaster type from title and description using BERT"""
-    if bert_model is None or bert_tokenizer is None or torch is None:
-        # Fallback to simple keyword-based classification
-        return classify_text_fallback(title, description)
-    
-    try:
-        # Combine title and description
-        text = f"{title}. {description}"
-        
-        # Tokenize the text
-        inputs = bert_tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-        
-        # Get prediction
-        with torch.no_grad():
-            outputs = bert_model(**inputs)
-            predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
-            predicted_class = torch.argmax(predictions, dim=-1).item()
-            confidence = predictions[0][predicted_class].item()
-        
-        # Map prediction to disaster type
-        disaster_types = ['Earthquake', 'Flood', 'Cyclone', 'Wildfire']
-        disaster_type = disaster_types[predicted_class]
-        
-        return {
-            'disaster_type': disaster_type,
-            'confidence': confidence,
-            'method': 'BERT'
-        }
-    except Exception as e:
-        return classify_text_fallback(title, description)
+    """Classify disaster type from title and description using keyword matching"""
+    return classify_text_fallback(title, description)
 
 def classify_text_fallback(title, description):
-    """Fallback text classification using keyword matching"""
+    """Keyword-based text classification"""
     text = f"{title} {description}".lower()
     
     # Keyword-based classification
