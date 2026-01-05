@@ -54,7 +54,7 @@ except Exception as e:
 
 # Initialize with sample data if database is empty
 def init_sample_data():
-    if db and reports_collection.count_documents({}) == 0:
+    if db is not None and reports_collection.count_documents({}) == 0:
         sample_reports = [
             {
                 'title': 'Heavy Flooding in Downtown Area',
@@ -94,7 +94,7 @@ def home():
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
-    if not db:
+    if db is None:
         return jsonify({"error": "Database not connected"}), 500
     
     total_reports = reports_collection.count_documents({})
@@ -113,7 +113,7 @@ def get_stats():
 
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
-    if not db:
+    if db is None:
         return jsonify({"error": "Database not connected"}), 500
     
     reports = list(reports_collection.find({}))
@@ -190,7 +190,7 @@ def submit_report():
             'final_verified': False
         }
         
-        if db:
+        if db is not None:
             result = reports_collection.insert_one(new_report)
             report_id = str(result.inserted_id)
         else:
