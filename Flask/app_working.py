@@ -8,22 +8,41 @@ import os
 from datetime import datetime
 import requests
 import json
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 
 app = Flask(__name__)
 CORS(app, origins=["*"])
 
-# Loading the model
+# Loading the models
 try:
+    # CNN Model for image classification
     model_path = os.path.join(os.path.dirname(__file__), 'disaster.h5')
     if os.path.exists(model_path):
-        model = load_model(model_path)
-        print("Model loaded successfully!")
+        cnn_model = load_model(model_path)
+        print("✅ CNN Model loaded successfully!")
     else:
-        print("Model file not found, running without AI")
-        model = None
+        print("❌ CNN Model file not found")
+        cnn_model = None
 except Exception as e:
-    print(f"Error loading model: {e}")
-    model = None
+    print(f"❌ Error loading CNN model: {e}")
+    cnn_model = None
+
+try:
+    # BERT Model for text classification
+    bert_model_path = os.path.join(os.path.dirname(__file__), '..', 'final_model')
+    if os.path.exists(bert_model_path):
+        bert_tokenizer = AutoTokenizer.from_pretrained(bert_model_path)
+        bert_model = AutoModelForSequenceClassification.from_pretrained(bert_model_path)
+        print("✅ BERT Model loaded successfully!")
+    else:
+        print("❌ BERT Model path not found")
+        bert_model = None
+        bert_tokenizer = None
+except Exception as e:
+    print(f"❌ Error loading BERT model: {e}")
+    bert_model = None
+    bert_tokenizer = None
 
 # In-memory storage for reports and actions
 reports = [
@@ -110,41 +129,57 @@ def submit_report():
         temp_filename = secure_filename(image.filename)
         image.save(temp_filename)
 
-        disaster_type = "Unknown"
-        confidence = 0.5
+        # CNN Image Analysis
+        cnn_disaster_type = "Unknown"
+        cnn_confidence = 0.5
         
-        if model is not None:
+        if cnn_model is not None:
             try:
                 image_data = cv2.imread(temp_filename)
                 image_data = cv2.cvtColor(image_data, cv2.COLOR_BGR2RGB)
                 image_data = cv2.resize(image_data, (64, 64))
                 x = np.expand_dims(image_data, axis=0)
                 
-                predictions = model.predict(x, verbose=0)
+                predictions = cnn_model.predict(x, verbose=0)
                 result = np.argmax(predictions, axis=-1)
                 index = ['Cyclone', 'Earthquake', 'Flood', 'Wildfire']
-                disaster_type = index[result[0]]
-                confidence = float(np.max(predictions))
+                cnn_disaster_type = index[result[0]]
+                cnn_confidence = float(np.max(predictions))
             except Exception as e:
-                disaster_type = "Analysis Failed"
+                cnn_disaster_type = "Analysis Failed"
         
-        ai_result = f"Disaster Type: {disaster_type}\nConfidence: {confidence:.2%}\nAnalysis: The AI model has classified this image as showing signs of a {disaster_type.lower()}."
+        # BERT Text Analysis
+        bert_result = classify_text_with_bert(title, description)
+        bert_disaster_type = bert_result['disaster_type']
+        bert_confidence = bert_result['confidence']
+        
+        # Multi-model consensus
+        models_agree = cnn_disaster_type.lower() == bert_disaster_type.lower()
+        final_disaster_type = cnn_disaster_type if models_agree else "Conflicting"
+        
+        ai_result = f"CNN Analysis: {cnn_disaster_type} ({cnn_confidence:.2%})\nBERT Analysis: {bert_disaster_type} ({bert_confidence:.2%})\nModels Agree: {'Yes' if models_agree else 'No'}\nFinal Classification: {final_disaster_type}"
         
         new_report = {
             '_id': len(reports) + 1,
             'title': title,
             'location': location,
             'description': description,
-            'disaster_type': disaster_type,
+            'cnn_prediction': cnn_disaster_type,
+            'cnn_confidence': cnn_confidence,
+            'bert_prediction': bert_disaster_type,
+            'bert_confidence': bert_confidence,
+            'models_agree': models_agree,
+            'disaster_type': final_disaster_type,
             'source': 'User Report',
             'timestamp': datetime.now().isoformat(),
-            'status': 'Verified' if confidence > 0.7 else 'Pending'
+            'status': 'Pending Verification',
+            'news_verified': False,
+            'final_verified': False
         }
         
         reports.append(new_report)
         stats['total_reports'] = len(reports)
-        if new_report['status'] == 'Verified':
-            stats['verified_emergencies'] += 1
+        stats['pending_verification'] = len([r for r in reports if r['status'] == 'Pending Verification'])
         
         try:
             os.remove(temp_filename)
@@ -160,7 +195,40 @@ def submit_report():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# BERT text classification function
+def classify_text_with_bert(title, description):
+    """Classify disaster type from title and description using BERT"""
+    if bert_model is None or bert_tokenizer is None:
+        return {'disaster_type': 'Unknown', 'confidence': 0.0, 'error': 'BERT model not loaded'}
+    
+    try:
+        # Combine title and description
+        text = f"{title}. {description}"
+        
+        # Tokenize the text
+        inputs = bert_tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+        
+        # Get prediction
+        with torch.no_grad():
+            outputs = bert_model(**inputs)
+            predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
+            predicted_class = torch.argmax(predictions, dim=-1).item()
+            confidence = predictions[0][predicted_class].item()
+        
+        # Map prediction to disaster type
+        disaster_types = ['Earthquake', 'Flood', 'Cyclone', 'Wildfire']
+        disaster_type = disaster_types[predicted_class]
+        
+        return {
+            'disaster_type': disaster_type,
+            'confidence': confidence,
+            'method': 'BERT'
+        }
+    except Exception as e:
+        return {'disaster_type': 'Unknown', 'confidence': 0.0, 'error': str(e)}
+
 def verify_with_news_api(title, location, disaster_type):
+    """Mock news verification - in production, use real news API"""
     try:
         mock_news_data = {
             'flood mumbai': True,
@@ -183,7 +251,8 @@ def verify_with_news_api(title, location, disaster_type):
 
 @app.route('/api/ngo/verified-reports', methods=['GET'])
 def get_verified_reports():
-    verified_reports = [r for r in reports if r['status'] == 'Verified' and r.get('news_verified', False)]
+    """Get only fully verified reports (CNN + BERT + News) for NGO dashboard"""
+    verified_reports = [r for r in reports if r.get('final_verified', False)]
     return jsonify(verified_reports)
 
 @app.route('/api/ngo/take-action', methods=['POST'])
@@ -230,30 +299,48 @@ def get_ngo_actions():
 
 @app.route('/api/verify-report/<int:report_id>', methods=['POST'])
 def verify_report_with_news(report_id):
+    """Verify a report using news API and update final verification status"""
     try:
         report = next((r for r in reports if r['_id'] == report_id), None)
         if not report:
             return jsonify({'error': 'Report not found'}), 404
         
+        # Use the disaster type from model consensus for news verification
+        disaster_type_for_news = report.get('cnn_prediction', 'Unknown')
+        if report.get('models_agree', False):
+            disaster_type_for_news = report.get('disaster_type', 'Unknown')
+        
         verification_result = verify_with_news_api(
             report['title'], 
             report['location'], 
-            report['disaster_type']
+            disaster_type_for_news
         )
         
-        if verification_result['verified']:
-            report['status'] = 'Verified'
-            report['news_verified'] = True
-        else:
-            report['status'] = 'Unverified'
-            report['news_verified'] = False
+        # Update news verification status
+        report['news_verified'] = verification_result['verified']
+        report['news_confidence'] = verification_result['confidence']
         
-        stats['verified_emergencies'] = len([r for r in reports if r['status'] == 'Verified'])
+        # Final verification: CNN + BERT agree + News verified
+        if (report.get('models_agree', False) and 
+            report.get('news_verified', False) and 
+            report.get('cnn_confidence', 0) > 0.6 and 
+            report.get('bert_confidence', 0) > 0.6):
+            report['final_verified'] = True
+            report['status'] = 'Fully Verified'
+        else:
+            report['final_verified'] = False
+            report['status'] = 'Partially Verified' if report.get('news_verified', False) else 'Unverified'
+        
+        # Update stats
+        stats['verified_emergencies'] = len([r for r in reports if r.get('final_verified', False)])
         stats['news_verified'] = len([r for r in reports if r.get('news_verified', False)])
+        stats['pending_verification'] = len([r for r in reports if r['status'] == 'Pending Verification'])
         
         return jsonify({
             'success': True,
             'verification_result': verification_result,
+            'models_agree': report.get('models_agree', False),
+            'final_verified': report.get('final_verified', False),
             'updated_status': report['status']
         })
         

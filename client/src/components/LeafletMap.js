@@ -63,9 +63,11 @@ function LeafletMap() {
 
   const fetchReports = async () => {
     try {
-      const response = await axios.get('https://disaster-relief-platform-backend.onrender.com/api/reports');
-      console.log('📋 Fetched reports:', response.data);
-      setReports(response.data);
+      const response = await axios.get('http://127.0.0.1:5000/api/reports');
+      // Only show fully verified reports on map
+      const fullyVerifiedReports = response.data.filter(report => report.final_verified);
+      console.log('📋 Fetched reports:', response.data.length, 'total,', fullyVerifiedReports.length, 'fully verified');
+      setReports(fullyVerifiedReports);
     } catch (err) {
       console.error('❌ Failed to fetch reports:', err);
     }

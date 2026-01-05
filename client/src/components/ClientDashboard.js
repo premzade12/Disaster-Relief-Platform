@@ -77,9 +77,9 @@ function ClientDashboard() {
               <tr>
                 <th className="px-6 py-4">Time</th>
                 <th className="px-6 py-4">Source</th>
-                <th className="px-6 py-4">Severity / Type</th>
-                <th className="px-6 py-4">Location</th>
-                <th className="px-6 py-4">Details</th>
+                <th className="px-6 py-4">CNN Prediction</th>
+                <th className="px-6 py-4">BERT Prediction</th>
+                <th className="px-6 py-4">Models Agree</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Actions</th>
               </tr>
@@ -98,30 +98,42 @@ function ClientDashboard() {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">
-                      {report.disaster_type || "Analyzing..."}
+                    <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100 text-xs">
+                      {report.cnn_prediction || "N/A"}
+                      {report.cnn_confidence && ` (${(report.cnn_confidence * 100).toFixed(0)}%)`}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-700 font-semibold">
-                    {report.location || "Unknown"}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                    {report.title}
+                  <td className="px-6 py-4">
+                    <span className="font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-full border border-purple-100 text-xs">
+                      {report.bert_prediction || "N/A"}
+                      {report.bert_confidence && ` (${(report.bert_confidence * 100).toFixed(0)}%)`}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
-                    {report.status === "Verified" ? (
-                      <span className="text-green-600 font-bold flex items-center gap-1 bg-green-50 px-2 py-1 rounded-lg">
-                        ✔ Verified
+                    {report.models_agree ? (
+                      <span className="text-green-600 font-bold text-xs">✓ Yes</span>
+                    ) : (
+                      <span className="text-red-600 font-bold text-xs">✗ No</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {report.final_verified ? (
+                      <span className="text-green-600 font-bold flex items-center gap-1 bg-green-50 px-2 py-1 rounded-lg text-xs">
+                        ✔✔✔ Fully Verified
+                      </span>
+                    ) : report.status === "Partially Verified" ? (
+                      <span className="text-yellow-600 font-bold flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg text-xs">
+                        ✔✔ Partially Verified
                         {report.news_verified && <span className="text-xs bg-blue-100 text-blue-800 px-1 rounded">📰</span>}
                       </span>
                     ) : (
-                      <span className="text-gray-400 font-medium">
+                      <span className="text-gray-400 font-medium text-xs">
                         ⏳ {report.status}
                       </span>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    {report.status === 'Pending Verification' && (
+                    {(report.status === 'Pending Verification' || report.status === 'Partially Verified') && (
                       <button
                         onClick={() => verifyReport(report._id)}
                         disabled={verifying[report._id]}
@@ -134,8 +146,8 @@ function ClientDashboard() {
                         {verifying[report._id] ? 'Verifying...' : '🔍 Verify with News'}
                       </button>
                     )}
-                    {report.status === 'Verified' && report.news_verified && (
-                      <span className="text-green-600 text-xs font-medium">✅ News Verified</span>
+                    {report.final_verified && (
+                      <span className="text-green-600 text-xs font-medium">✅ Fully Verified</span>
                     )}
                   </td>
                 </tr>
