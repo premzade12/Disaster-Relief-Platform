@@ -1,6 +1,9 @@
-# Environment variables
+# Environment variables - CRITICAL: Never commit these!
 .env
 *.env
+!.env.example
+Flask/.env
+client/.env
 
 # Python
 __pycache__/
@@ -11,19 +14,64 @@ __pycache__/
 env/
 venv/
 .venv/
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Model files
+# Model files - Large files
 *.h5
 *.pkl
+*.pth
+*.onnx
+*.pb
+disaster.h5
+Flask/disaster.h5
+
+# Dataset - Large files
+dataset/
+*.csv
+*.zip
+*.tar.gz
+
+# Node modules - Large directory
+node_modules/
+client/node_modules/
+
+# Build outputs
+client/build/
+client/dist/
 
 # Temporary files
 *.tmp
 *.log
+*.jpg
+*.jpeg
+*.png
+!client/public/*.png
+!client/public/*.jpg
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python cache
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Flask
+instance/
+.webassets-cache

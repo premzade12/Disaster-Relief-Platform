@@ -1,7 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { ThemeContext } from '../ThemeContext';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 function UserPortal() {
+  const { isDark } = useContext(ThemeContext);
   const [formData, setFormData] = useState({ title: '', location: '', description: '' });
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -20,63 +24,38 @@ function UserPortal() {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // Cleanup camera stream on component unmount
   useEffect(() => {
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
     };
   }, []);
-
-  // Handle video stream setup
-  useEffect(() => {
-    if (showCamera && streamRef.current && videoRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-    }
-  }, [showCamera]);
 
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: 'environment' // Use back camera on mobile
-        } 
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'environment' } 
       });
       streamRef.current = stream;
       setShowCamera(true);
-      
-      // Wait a bit then set video source
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      }, 100);
+      setTimeout(() => { if (videoRef.current) videoRef.current.srcObject = stream; }, 100);
     } catch (err) {
-      console.error('Camera error:', err);
-      alert('Camera access denied or not available. Please check permissions and try again.');
+      alert('Camera access denied');
     }
   };
 
   const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
+    if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
     setShowCamera(false);
   };
 
   const capturePhoto = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
-    
     if (canvas && video) {
       const context = canvas.getContext('2d');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       context.drawImage(video, 0, 0);
-      
       canvas.toBlob((blob) => {
         const file = new File([blob], 'captured-image.jpg', { type: 'image/jpeg' });
         setSelectedFile(file);
@@ -89,161 +68,215 @@ function UserPortal() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedFile) return alert("Please upload an image or capture a photo for AI verification.");
+    if (!selectedFile) return alert("Please upload an image");
     
     setLoading(true);
     setAiResult(null);
 
     try {
-      // Create FormData for file upload
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
       formDataToSend.append('location', formData.location);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('image', selectedFile);
 
-      // Submit report with file upload and AI analysis
-      const response = await axios.post('https://disaster-relief-platform-backend.onrender.com/api/report', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      const response = await axios.post(`${API_URL}/api/report`, formDataToSend, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       
       setAiResult(response.data.ai_result);
-      alert("✅ Report Submitted! AI Analysis Complete.");
+      alert("✅ Report Submitted!");
       
-      // Reset form
       setFormData({ title: '', location: '', description: '' });
       setSelectedFile(null);
       setCapturedImage(null);
       
     } catch (err) {
-      console.error(err);
-      alert("Submission Failed. Is the backend running?");
+      alert("Submission Failed");
     }
     setLoading(false);
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[85vh] p-4">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-        <div className="bg-yellow-400 p-6 text-center">
-          <h2 className="text-2xl font-black text-gray-900 uppercase tracking-wide">📢 Report Incident</h2>
-          <p className="text-yellow-900 font-medium text-sm mt-1">Submit details for AI Verification</p>
+    <div className={`h-screen overflow-hidden py-12 px-4 ${isDark ? 'bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900' : 'bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50'}`}>
+      <div className="h-full overflow-y-auto">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <div className="inline-block bg-gradient-to-r from-red-600 to-orange-600 text-white px-6 py-2 rounded-full text-sm font-bold mb-4 shadow-lg animate-pulse">
+            🚨 EMERGENCY REPORTING SYSTEM
+          </div>
+          <h1 className="text-6xl font-black mb-3 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 bg-clip-text text-transparent">
+            Report Disaster
+          </h1>
+          <p className={`text-xl ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>AI-Powered Real-Time Verification</p>
         </div>
-        
-        <div className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-gray-700 font-bold mb-2">Title</label>
-              <input name="title" value={formData.title} onChange={handleChange} required 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition" 
-                placeholder="e.g., Heavy Flooding in Market" />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-bold mb-2">Location</label>
-              <input name="location" value={formData.location} onChange={handleChange} required 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition" 
-                placeholder="City, Area" />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-bold mb-2">Description</label>
-              <textarea name="description" rows="3" value={formData.description} onChange={handleChange} required 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"></textarea>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Form Section */}
+          <div className={`rounded-3xl shadow-2xl overflow-hidden border transform transition hover:scale-[1.01] ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className="bg-gradient-to-r from-red-500 via-red-600 to-orange-600 p-6">
+              <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                📝 Incident Details
+              </h2>
             </div>
             
-            <div className="bg-red-50 p-4 rounded-lg border border-red-100 dashed-border">
-              <label className="block text-red-700 font-bold mb-3">Upload Evidence (Required)</label>
-              
-              {/* Camera and Upload Options */}
-              <div className="flex gap-3 mb-4">
-                <button 
-                  type="button" 
-                  onClick={startCamera}
-                  disabled={showCamera}
-                  className={`flex-1 py-3 px-4 rounded-lg font-bold transition flex items-center justify-center gap-2 ${
-                    showCamera 
-                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  📷 Use Camera
-                </button>
-                <label className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition cursor-pointer flex items-center justify-center gap-2">
-                  📁 Upload File
-                  <input type="file" onChange={handleFileChange} className="hidden" accept="image/*" />
+            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+              <div className="space-y-2">
+                <label className={`block font-bold text-sm uppercase tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  🏷️ Title
                 </label>
+                <input 
+                  name="title" 
+                  value={formData.title} 
+                  onChange={handleChange} 
+                  required 
+                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-900' : 'bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100'}`}
+                  placeholder="e.g., Severe Flooding in Downtown" 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className={`block font-bold text-sm uppercase tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  📍 Location
+                </label>
+                <input 
+                  name="location" 
+                  value={formData.location} 
+                  onChange={handleChange} 
+                  required 
+                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-900' : 'bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100'}`}
+                  placeholder="City, State/Country" 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className={`block font-bold text-sm uppercase tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  📄 Description
+                </label>
+                <textarea 
+                  name="description" 
+                  rows="4" 
+                  value={formData.description} 
+                  onChange={handleChange} 
+                  required 
+                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-900' : 'bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100'}`}
+                  placeholder="Describe the disaster situation in detail..."
+                ></textarea>
               </div>
 
-              {/* Camera View */}
-              {showCamera && (
-                <div className="mb-4 p-4 bg-gray-100 rounded-lg">
-                  <p className="text-center text-gray-700 font-semibold mb-3">📷 Camera Active - Position your device to capture the disaster scene</p>
-                  <div className="flex justify-center">
-                    <video 
-                      ref={videoRef} 
-                      autoPlay 
-                      playsInline 
-                      muted
-                      className="w-full max-w-sm rounded-lg border-2 border-blue-400 shadow-lg"
-                      style={{ maxHeight: '300px' }}
-                    />
-                  </div>
-                  <div className="flex gap-3 mt-4 justify-center">
-                    <button 
-                      type="button" 
-                      onClick={capturePhoto}
-                      className="bg-red-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-red-700 transition shadow-lg flex items-center gap-2"
-                    >
-                      📸 CAPTURE PHOTO
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={stopCamera}
-                      className="bg-gray-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-gray-700 transition shadow-lg flex items-center gap-2"
-                    >
-                      ❌ CANCEL
-                    </button>
-                  </div>
-                </div>
-              )}
+              <button 
+                type="submit" 
+                disabled={loading || !selectedFile}
+                className={`w-full py-4 rounded-xl font-black text-lg shadow-xl transform transition ${
+                  loading || !selectedFile
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:scale-105 hover:shadow-2xl'
+                }`}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                    PROCESSING...
+                  </span>
+                ) : '🚨 SUBMIT EMERGENCY REPORT'}
+              </button>
+            </form>
+          </div>
 
-              {/* Captured/Selected Image Preview */}
-              {(capturedImage || selectedFile) && (
-                <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-green-700 font-bold mb-3 text-center">✅ Image Ready for AI Analysis</p>
-                  {capturedImage ? (
-                    <div className="text-center">
-                      <img src={capturedImage} alt="Captured" className="w-full max-w-sm mx-auto rounded-lg border-2 border-green-400 shadow-lg" />
-                      <p className="text-green-600 text-sm mt-2 font-medium">📷 Photo captured from camera</p>
-                    </div>
-                  ) : selectedFile ? (
-                    <div className="bg-green-100 p-4 rounded-lg border border-green-300 text-center">
-                      <div className="text-4xl mb-2">📎</div>
-                      <p className="text-green-800 font-bold">{selectedFile.name}</p>
-                      <p className="text-green-600 text-sm">Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                    </div>
-                  ) : null}
+          {/* Image Upload Section */}
+          <div className="space-y-6">
+            <div className={`rounded-3xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+              <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-6">
+                <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                  📸 Evidence Upload
+                </h2>
+              </div>
+              
+              <div className="p-8 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <button 
+                    type="button" 
+                    onClick={startCamera}
+                    disabled={showCamera}
+                    className={`py-4 px-6 rounded-xl font-bold text-sm shadow-lg transform transition ${
+                      showCamera 
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:scale-105 hover:shadow-xl'
+                    }`}
+                  >
+                    📷 Open Camera
+                  </button>
+                  <label className="py-4 px-6 rounded-xl font-bold text-sm shadow-lg bg-gradient-to-r from-green-600 to-green-700 text-white hover:scale-105 hover:shadow-xl cursor-pointer text-center transform transition">
+                    📁 Upload File
+                    <input type="file" onChange={handleFileChange} className="hidden" accept="image/*" />
+                  </label>
                 </div>
-              )}
 
-              {/* Hidden canvas for image capture */}
-              <canvas ref={canvasRef} style={{ display: 'none' }} />
+                {showCamera && (
+                  <div className={`border-2 rounded-2xl p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
+                    <video ref={videoRef} autoPlay playsInline muted className="w-full rounded-xl mb-4 shadow-lg" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        type="button" 
+                        onClick={capturePhoto} 
+                        className="py-3 rounded-xl font-bold bg-gradient-to-r from-red-600 to-red-700 text-white hover:scale-105 transform transition shadow-lg"
+                      >
+                        ✓ Capture Photo
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={stopCamera} 
+                        className={`py-3 rounded-xl font-bold shadow-lg transform transition hover:scale-105 ${isDark ? 'bg-gray-600 text-white' : 'bg-gray-500 text-white'}`}
+                      >
+                        ✕ Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {(capturedImage || selectedFile) && (
+                  <div className="border-2 border-green-500 rounded-2xl p-4 bg-gradient-to-br from-green-50 to-emerald-50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">✓</div>
+                      <p className="font-bold text-green-700">Image Ready for Upload</p>
+                    </div>
+                    {capturedImage ? (
+                      <img src={capturedImage} alt="Captured" className="w-full rounded-xl shadow-lg" />
+                    ) : selectedFile && (
+                      <div className="bg-white rounded-xl p-4 shadow-inner">
+                        <p className="text-sm text-gray-600 font-medium">📎 {selectedFile.name}</p>
+                        <p className="text-xs text-gray-400 mt-1">{(selectedFile.size / 1024).toFixed(2)} KB</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <canvas ref={canvasRef} style={{ display: 'none' }} />
+              </div>
             </div>
 
+            {/* AI Result */}
             {aiResult && (
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg animate-fade-in">
-                <p className="font-bold text-blue-700">🤖 AI Analysis Result:</p>
-                <pre className="text-gray-700 whitespace-pre-wrap mt-1 text-sm">{aiResult}</pre>
+              <div className={`rounded-3xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
+                  <h3 className="text-2xl font-black text-white flex items-center gap-2">
+                    🤖 AI Analysis Result
+                  </h3>
+                </div>
+                <div className="p-8">
+                  <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-700' : 'bg-gradient-to-br from-purple-50 to-indigo-50'}`}>
+                    <pre className={`text-sm whitespace-pre-wrap font-medium leading-relaxed ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{aiResult}</pre>
+                  </div>
+                </div>
               </div>
             )}
-
-            <button type="submit" disabled={loading}
-              className={`w-full py-3 text-white font-bold rounded-lg shadow-lg transform transition hover:scale-105 ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}>
-              {loading ? "PROCESSING..." : "SUBMIT REPORT"}
-            </button>
-          </form>
+          </div>
         </div>
+      </div>
       </div>
     </div>
   );

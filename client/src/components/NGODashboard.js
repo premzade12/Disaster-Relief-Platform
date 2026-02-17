@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { ThemeContext } from '../ThemeContext';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 function NGODashboard() {
+  const { isDark } = useContext(ThemeContext);
   const [verifiedReports, setVerifiedReports] = useState([]);
   const [actions, setActions] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
@@ -24,8 +28,18 @@ function NGODashboard() {
 
   const fetchVerifiedReports = async () => {
     try {
-      const response = await axios.get('https://disaster-relief-platform-backend.onrender.com/api/ngo/verified-reports');
-      setVerifiedReports(response.data);
+      const response = await axios.get(`${API_URL}/api/ngo/verified-reports`);
+      console.log('Fetched verified reports:', response.data.length);
+      
+      // Sort by severity: High > Medium > Low
+      const severityOrder = { 'High': 1, 'Medium': 2, 'Low': 3 };
+      const sorted = response.data.sort((a, b) => {
+        const severityA = severityOrder[a.severity] || 4;
+        const severityB = severityOrder[b.severity] || 4;
+        return severityA - severityB;
+      });
+      
+      setVerifiedReports(sorted);
     } catch (err) {
       console.error('Failed to fetch verified reports:', err);
     }
@@ -33,7 +47,7 @@ function NGODashboard() {
 
   const fetchActions = async () => {
     try {
-      const response = await axios.get('https://disaster-relief-platform-backend.onrender.com/api/ngo/actions');
+      const response = await axios.get(`${API_URL}/api/ngo/actions`);
       setActions(response.data);
     } catch (err) {
       console.error('Failed to fetch actions:', err);
@@ -46,7 +60,7 @@ function NGODashboard() {
 
     setLoading(true);
     try {
-      const response = await axios.post('https://disaster-relief-platform-backend.onrender.com/api/ngo/take-action', {
+      const response = await axios.post(`${API_URL}/api/ngo/take-action`, {
         report_id: selectedReport._id,
         action_type: actionForm.action_type,
         resources: actionForm.resources,
@@ -100,28 +114,40 @@ function NGODashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto mt-10 px-4 mb-10">
+    <div className={`h-screen overflow-hidden ${isDark ? 'bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900' : 'bg-gray-50'}`}>
+      <div className="h-full overflow-y-auto">
+      <div className="max-w-7xl mx-auto mt-10 px-4 mb-10">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-2xl shadow-xl mb-8">
+      <div className={`p-6 rounded-2xl shadow-xl mb-8 ${isDark ? 'bg-gradient-to-r from-blue-800 to-blue-900' : 'bg-gradient-to-r from-blue-600 to-blue-800'} text-white`}>
         <h1 className="text-3xl font-bold flex items-center gap-3">
           🏥 NGO Response Dashboard
         </h1>
         <p className="text-blue-100 mt-2">Coordinate disaster relief efforts and manage emergency responses</p>
+        <div className="mt-4 flex gap-4 text-sm">
+          <div className="bg-white/20 px-4 py-2 rounded-lg">
+            <span className="font-bold text-2xl">{verifiedReports.length}</span>
+            <p className="text-blue-100">Verified Reports</p>
+          </div>
+          <div className="bg-white/20 px-4 py-2 rounded-lg">
+            <span className="font-bold text-2xl">{actions.length}</span>
+            <p className="text-blue-100">Active Operations</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Verified Reports */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200">
-          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+        <div className={`rounded-2xl shadow-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div className={`px-6 py-4 border-b ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+            <h2 className={`text-xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
               ✅ Verified Emergency Reports
             </h2>
-            <p className="text-gray-600 text-sm mt-1">News-verified disasters requiring immediate attention</p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>News-verified disasters requiring immediate attention</p>
           </div>
           
           <div className="p-6 max-h-96 overflow-y-auto">
             {verifiedReports.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className={`text-center py-8 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                 <div className="text-4xl mb-4">📋</div>
                 <p>No verified reports at the moment</p>
               </div>
@@ -132,22 +158,22 @@ function NGODashboard() {
                     key={report._id} 
                     className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                       selectedReport?._id === report._id 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? isDark ? 'border-blue-400 bg-blue-900' : 'border-blue-500 bg-blue-50'
+                        : isDark ? 'border-gray-600 hover:border-gray-500' : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => setSelectedReport(report)}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                      <h3 className={`font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
                         {getDisasterIcon(report.disaster_type)} {report.title}
                       </h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-bold border ${getSeverityColor(report.severity)}`}>
                         {report.severity}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">📍 {report.location}</p>
-                    <p className="text-sm text-gray-500">{report.description}</p>
-                    <div className="flex justify-between items-center mt-3 text-xs text-gray-400">
+                    <p className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>📍 {report.location}</p>
+                    <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{report.description}</p>
+                    <div className={`flex justify-between items-center mt-3 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                       <span>🕒 {new Date(report.timestamp).toLocaleString()}</span>
                       <span className="bg-green-100 text-green-800 px-2 py-1 rounded">📰 News Verified</span>
                     </div>
@@ -159,17 +185,17 @@ function NGODashboard() {
         </div>
 
         {/* Action Form */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200">
-          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+        <div className={`rounded-2xl shadow-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div className={`px-6 py-4 border-b ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+            <h2 className={`text-xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
               🚀 Take Emergency Action
             </h2>
-            <p className="text-gray-600 text-sm mt-1">Deploy resources and coordinate relief efforts</p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Deploy resources and coordinate relief efforts</p>
           </div>
           
           <div className="p-6">
             {!selectedReport ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className={`text-center py-8 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                 <div className="text-4xl mb-4">👆</div>
                 <p>Select a verified report to take action</p>
               </div>
@@ -182,22 +208,22 @@ function NGODashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-bold mb-2">NGO Name</label>
+                  <label className={`block font-bold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>NGO Name</label>
                   <input
                     type="text"
                     value={actionForm.ngo_name}
                     onChange={(e) => setActionForm({...actionForm, ngo_name: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                     placeholder="Your NGO Name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-bold mb-2">Action Type</label>
+                  <label className={`block font-bold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Action Type</label>
                   <select
                     value={actionForm.action_type}
                     onChange={(e) => setActionForm({...actionForm, action_type: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                     required
                   >
                     <option value="">Select Action Type</option>
@@ -211,7 +237,7 @@ function NGODashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-bold mb-2">Resources to Deploy</label>
+                  <label className={`block font-bold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Resources to Deploy</label>
                   <div className="flex gap-2 mb-2 flex-wrap">
                     {['Food Packets', 'Medical Supplies', 'Blankets', 'Water Bottles', 'Rescue Team', 'Ambulance'].map(resource => (
                       <button
@@ -261,33 +287,33 @@ function NGODashboard() {
       </div>
 
       {/* Active Actions */}
-      <div className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-200">
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+      <div className={`mt-8 rounded-2xl shadow-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`px-6 py-4 border-b ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+          <h2 className={`text-xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
             📊 Active Relief Operations
           </h2>
-          <p className="text-gray-600 text-sm mt-1">Current NGO response activities</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Current NGO response activities</p>
         </div>
         
         <div className="p-6">
           {actions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className={`text-center py-8 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
               <div className="text-4xl mb-4">📋</div>
               <p>No active operations</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {actions.map(action => (
-                <div key={action.id} className="p-4 border border-gray-200 rounded-lg">
+                <div key={action.id} className={`p-4 border rounded-lg ${isDark ? 'border-gray-600' : 'border-gray-200'}`}>
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-gray-800">{action.action_type}</h3>
+                    <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{action.action_type}</h3>
                     <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">
                       {action.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">🏥 {action.ngo_name}</p>
-                  <p className="text-sm text-gray-600 mb-2">📍 {action.location}</p>
-                  <div className="text-xs text-gray-500">
+                  <p className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>🏥 {action.ngo_name}</p>
+                  <p className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>📍 {action.location}</p>
+                  <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     <p>🕒 {new Date(action.timestamp).toLocaleString()}</p>
                     {action.resources.length > 0 && (
                       <p className="mt-1">📦 {action.resources.join(', ')}</p>
@@ -299,6 +325,8 @@ function NGODashboard() {
           )}
         </div>
       </div>
+    </div>
+    </div>
     </div>
   );
 }
