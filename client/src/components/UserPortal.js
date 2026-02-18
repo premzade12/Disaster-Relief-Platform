@@ -98,32 +98,32 @@ function UserPortal() {
   };
 
   return (
-    <div className={`h-screen overflow-hidden py-12 px-4 ${isDark ? 'bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900' : 'bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50'}`}>
+    <div className={`h-screen overflow-hidden py-6 sm:py-8 md:py-12 px-3 sm:px-4 ${isDark ? 'bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900' : 'bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50'}`}>
       <div className="h-full overflow-y-auto">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-block bg-gradient-to-r from-red-600 to-orange-600 text-white px-6 py-2 rounded-full text-sm font-bold mb-4 shadow-lg animate-pulse">
+        <div className="text-center mb-6 sm:mb-8 md:mb-10">
+          <div className="inline-block bg-gradient-to-r from-red-600 to-orange-600 text-white px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold mb-3 sm:mb-4 shadow-lg animate-pulse">
             🚨 EMERGENCY REPORTING SYSTEM
           </div>
-          <h1 className="text-6xl font-black mb-3 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-2 sm:mb-3 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 bg-clip-text text-transparent">
             Report Disaster
           </h1>
-          <p className={`text-xl ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>AI-Powered Real-Time Verification</p>
+          <p className={`text-base sm:text-lg md:text-xl ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>AI-Powered Real-Time Verification</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
           {/* Form Section */}
-          <div className={`rounded-3xl shadow-2xl overflow-hidden border transform transition hover:scale-[1.01] ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-            <div className="bg-gradient-to-r from-red-500 via-red-600 to-orange-600 p-6">
-              <h2 className="text-2xl font-black text-white flex items-center gap-2">
+          <div className={`rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border transform transition hover:scale-[1.01] ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className="bg-gradient-to-r from-red-500 via-red-600 to-orange-600 p-4 sm:p-5 md:p-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white flex items-center gap-2">
                 📝 Incident Details
               </h2>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 md:space-y-6">
               <div className="space-y-2">
-                <label className={`block font-bold text-sm uppercase tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                <label className={`block font-bold text-xs sm:text-sm uppercase tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   🏷️ Title
                 </label>
                 <input 
@@ -131,13 +131,13 @@ function UserPortal() {
                   value={formData.title} 
                   onChange={handleChange} 
                   required 
-                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-900' : 'bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100'}`}
-                  placeholder="e.g., Severe Flooding in Downtown" 
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg sm:rounded-xl text-sm sm:text-base focus:outline-none focus:ring-4 transition ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-900' : 'bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100'}`}
+                  placeholder="e.g., Severe Flooding" 
                 />
               </div>
               
               <div className="space-y-2">
-                <label className={`block font-bold text-sm uppercase tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                <label className={`block font-bold text-xs sm:text-sm uppercase tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   📍 Location
                 </label>
                 <input 
@@ -145,30 +145,30 @@ function UserPortal() {
                   value={formData.location} 
                   onChange={handleChange} 
                   required 
-                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-900' : 'bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100'}`}
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg sm:rounded-xl text-sm sm:text-base focus:outline-none focus:ring-4 transition ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-900' : 'bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100'}`}
                   placeholder="City, State/Country" 
                 />
               </div>
               
               <div className="space-y-2">
-                <label className={`block font-bold text-sm uppercase tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                <label className={`block font-bold text-xs sm:text-sm uppercase tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   📄 Description
                 </label>
                 <textarea 
                   name="description" 
-                  rows="4" 
+                  rows="3" 
                   value={formData.description} 
                   onChange={handleChange} 
                   required 
-                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-900' : 'bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100'}`}
-                  placeholder="Describe the disaster situation in detail..."
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg sm:rounded-xl text-sm sm:text-base focus:outline-none focus:ring-4 transition resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-900' : 'bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100'}`}
+                  placeholder="Describe the disaster..."
                 ></textarea>
               </div>
 
               <button 
                 type="submit" 
                 disabled={loading || !selectedFile}
-                className={`w-full py-4 rounded-xl font-black text-lg shadow-xl transform transition ${
+                className={`w-full py-3 sm:py-4 rounded-lg sm:rounded-xl font-black text-sm sm:text-base md:text-lg shadow-xl transform transition ${
                   loading || !selectedFile
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                     : 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:scale-105 hover:shadow-2xl'
@@ -188,49 +188,49 @@ function UserPortal() {
           </div>
 
           {/* Image Upload Section */}
-          <div className="space-y-6">
-            <div className={`rounded-3xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-              <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-6">
-                <h2 className="text-2xl font-black text-white flex items-center gap-2">
+          <div className="space-y-4 sm:space-y-6">
+            <div className={`rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+              <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-4 sm:p-5 md:p-6">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white flex items-center gap-2">
                   📸 Evidence Upload
                 </h2>
               </div>
               
-              <div className="p-8 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 sm:p-6 md:p-8 space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                   <button 
                     type="button" 
                     onClick={startCamera}
                     disabled={showCamera}
-                    className={`py-4 px-6 rounded-xl font-bold text-sm shadow-lg transform transition ${
+                    className={`py-2.5 sm:py-3 md:py-4 px-3 sm:px-4 md:px-6 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm shadow-lg transform transition ${
                       showCamera 
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                         : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:scale-105 hover:shadow-xl'
                     }`}
                   >
-                    📷 Open Camera
+                    📷 Camera
                   </button>
-                  <label className="py-4 px-6 rounded-xl font-bold text-sm shadow-lg bg-gradient-to-r from-green-600 to-green-700 text-white hover:scale-105 hover:shadow-xl cursor-pointer text-center transform transition">
-                    📁 Upload File
+                  <label className="py-2.5 sm:py-3 md:py-4 px-3 sm:px-4 md:px-6 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm shadow-lg bg-gradient-to-r from-green-600 to-green-700 text-white hover:scale-105 hover:shadow-xl cursor-pointer text-center transform transition">
+                    📁 Upload
                     <input type="file" onChange={handleFileChange} className="hidden" accept="image/*" />
                   </label>
                 </div>
 
                 {showCamera && (
-                  <div className={`border-2 rounded-2xl p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
-                    <video ref={videoRef} autoPlay playsInline muted className="w-full rounded-xl mb-4 shadow-lg" />
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className={`border-2 rounded-xl sm:rounded-2xl p-3 sm:p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
+                    <video ref={videoRef} autoPlay playsInline muted className="w-full rounded-lg sm:rounded-xl mb-3 sm:mb-4 shadow-lg" />
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <button 
                         type="button" 
                         onClick={capturePhoto} 
-                        className="py-3 rounded-xl font-bold bg-gradient-to-r from-red-600 to-red-700 text-white hover:scale-105 transform transition shadow-lg"
+                        className="py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-red-600 to-red-700 text-white hover:scale-105 transform transition shadow-lg"
                       >
-                        ✓ Capture Photo
+                        ✓ Capture
                       </button>
                       <button 
                         type="button" 
                         onClick={stopCamera} 
-                        className={`py-3 rounded-xl font-bold shadow-lg transform transition hover:scale-105 ${isDark ? 'bg-gray-600 text-white' : 'bg-gray-500 text-white'}`}
+                        className={`py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold shadow-lg transform transition hover:scale-105 ${isDark ? 'bg-gray-600 text-white' : 'bg-gray-500 text-white'}`}
                       >
                         ✕ Cancel
                       </button>
@@ -239,16 +239,16 @@ function UserPortal() {
                 )}
 
                 {(capturedImage || selectedFile) && (
-                  <div className="border-2 border-green-500 rounded-2xl p-4 bg-gradient-to-br from-green-50 to-emerald-50">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">✓</div>
-                      <p className="font-bold text-green-700">Image Ready for Upload</p>
+                  <div className="border-2 border-green-500 rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-gradient-to-br from-green-50 to-emerald-50">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm sm:text-base font-bold">✓</div>
+                      <p className="font-bold text-green-700 text-xs sm:text-sm md:text-base">Image Ready</p>
                     </div>
                     {capturedImage ? (
-                      <img src={capturedImage} alt="Captured" className="w-full rounded-xl shadow-lg" />
+                      <img src={capturedImage} alt="Captured" className="w-full rounded-lg sm:rounded-xl shadow-lg" />
                     ) : selectedFile && (
-                      <div className="bg-white rounded-xl p-4 shadow-inner">
-                        <p className="text-sm text-gray-600 font-medium">📎 {selectedFile.name}</p>
+                      <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-inner">
+                        <p className="text-xs sm:text-sm text-gray-600 font-medium truncate">📎 {selectedFile.name}</p>
                         <p className="text-xs text-gray-400 mt-1">{(selectedFile.size / 1024).toFixed(2)} KB</p>
                       </div>
                     )}
@@ -261,15 +261,15 @@ function UserPortal() {
 
             {/* AI Result */}
             {aiResult && (
-              <div className={`rounded-3xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
-                  <h3 className="text-2xl font-black text-white flex items-center gap-2">
-                    🤖 AI Analysis Result
+              <div className={`rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 sm:p-5 md:p-6">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-black text-white flex items-center gap-2">
+                    🤖 AI Analysis
                   </h3>
                 </div>
-                <div className="p-8">
-                  <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-700' : 'bg-gradient-to-br from-purple-50 to-indigo-50'}`}>
-                    <pre className={`text-sm whitespace-pre-wrap font-medium leading-relaxed ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{aiResult}</pre>
+                <div className="p-4 sm:p-6 md:p-8">
+                  <div className={`rounded-lg sm:rounded-xl p-4 sm:p-6 ${isDark ? 'bg-gray-700' : 'bg-gradient-to-br from-purple-50 to-indigo-50'}`}>
+                    <pre className={`text-xs sm:text-sm whitespace-pre-wrap font-medium leading-relaxed ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{aiResult}</pre>
                   </div>
                 </div>
               </div>

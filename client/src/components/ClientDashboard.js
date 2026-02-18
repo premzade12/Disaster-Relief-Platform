@@ -54,57 +54,57 @@ function ClientDashboard() {
       <div className="max-w-7xl mx-auto p-6">
       
       {/* Stats Cards with Animation */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
-        <div className={`rounded-2xl shadow-xl p-6 transform hover:scale-105 transition-all duration-300 ${isDark ? 'bg-gradient-to-br from-blue-900 to-blue-800' : 'bg-gradient-to-br from-blue-500 to-blue-600'}`}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className={`rounded-xl md:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 transform hover:scale-105 transition-all duration-300 ${isDark ? 'bg-gradient-to-br from-blue-900 to-blue-800' : 'bg-gradient-to-br from-blue-500 to-blue-600'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-4xl font-black text-white mb-2">{stats.total_reports}</div>
-              <div className="text-sm text-blue-100 font-medium">Total Reports</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-1 md:mb-2">{stats.total_reports}</div>
+              <div className="text-xs sm:text-sm text-blue-100 font-medium">Total Reports</div>
             </div>
-            <div className="text-5xl opacity-20">📊</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl opacity-20">📊</div>
           </div>
-          <div className="mt-3 flex items-center text-xs text-blue-200">
+          <div className="mt-2 md:mt-3 flex items-center text-xs text-blue-200">
             <span className="animate-pulse">●</span>
             <span className="ml-1">Live tracking</span>
           </div>
         </div>
         
-        <div className={`rounded-2xl shadow-xl p-6 transform hover:scale-105 transition-all duration-300 ${isDark ? 'bg-gradient-to-br from-green-900 to-green-800' : 'bg-gradient-to-br from-green-500 to-green-600'}`}>
+        <div className={`rounded-xl md:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 transform hover:scale-105 transition-all duration-300 ${isDark ? 'bg-gradient-to-br from-green-900 to-green-800' : 'bg-gradient-to-br from-green-500 to-green-600'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-4xl font-black text-white mb-2">{stats.verified_emergencies}</div>
-              <div className="text-sm text-green-100 font-medium">Verified</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-1 md:mb-2">{stats.verified_emergencies}</div>
+              <div className="text-xs sm:text-sm text-green-100 font-medium">Verified</div>
             </div>
-            <div className="text-5xl opacity-20">✅</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl opacity-20">✅</div>
           </div>
-          <div className="mt-3 flex items-center text-xs text-green-200">
+          <div className="mt-2 md:mt-3 flex items-center text-xs text-green-200">
             <span>↑ {Math.round((stats.verified_emergencies / stats.total_reports) * 100 || 0)}% verified</span>
           </div>
         </div>
         
-        <div className={`rounded-2xl shadow-xl p-6 transform hover:scale-105 transition-all duration-300 ${isDark ? 'bg-gradient-to-br from-orange-900 to-orange-800' : 'bg-gradient-to-br from-orange-500 to-orange-600'}`}>
+        <div className={`rounded-xl md:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 transform hover:scale-105 transition-all duration-300 ${isDark ? 'bg-gradient-to-br from-orange-900 to-orange-800' : 'bg-gradient-to-br from-orange-500 to-orange-600'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-4xl font-black text-white mb-2">{stats.pending_verification}</div>
-              <div className="text-sm text-orange-100 font-medium">Pending</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-1 md:mb-2">{stats.pending_verification}</div>
+              <div className="text-xs sm:text-sm text-orange-100 font-medium">Pending</div>
             </div>
-            <div className="text-5xl opacity-20">⏳</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl opacity-20">⏳</div>
           </div>
-          <div className="mt-3 flex items-center text-xs text-orange-200">
+          <div className="mt-2 md:mt-3 flex items-center text-xs text-orange-200">
             <span className="animate-pulse">●</span>
             <span className="ml-1">Awaiting review</span>
           </div>
         </div>
         
-        <div className={`rounded-2xl shadow-xl p-6 transform hover:scale-105 transition-all duration-300 ${isDark ? 'bg-gradient-to-br from-purple-900 to-purple-800' : 'bg-gradient-to-br from-purple-500 to-purple-600'}`}>
+        <div className={`rounded-xl md:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 transform hover:scale-105 transition-all duration-300 ${isDark ? 'bg-gradient-to-br from-purple-900 to-purple-800' : 'bg-gradient-to-br from-purple-500 to-purple-600'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-4xl font-black text-white mb-2">{stats.active_ngos}</div>
-              <div className="text-sm text-purple-100 font-medium">Active NGOs</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-1 md:mb-2">{stats.active_ngos}</div>
+              <div className="text-xs sm:text-sm text-purple-100 font-medium">Active NGOs</div>
             </div>
-            <div className="text-5xl opacity-20">🏥</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl opacity-20">🏥</div>
           </div>
-          <div className="mt-3 flex items-center text-xs text-purple-200">
+          <div className="mt-2 md:mt-3 flex items-center text-xs text-purple-200">
             <span className="animate-pulse">●</span>
             <span className="ml-1">Responding now</span>
           </div>
@@ -139,12 +139,12 @@ function ClientDashboard() {
             </div>
           ) : (
             reports.map((report, index) => (
-              <div key={report._id} className={`p-6 transition-all duration-300 hover:shadow-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-blue-50'}`} style={{animation: `fadeIn 0.5s ease-in ${index * 0.1}s`}}>
-                <div className="grid grid-cols-2 gap-6">
+              <div key={report._id} className={`p-4 sm:p-6 transition-all duration-300 hover:shadow-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-blue-50'}`} style={{animation: `fadeIn 0.5s ease-in ${index * 0.1}s`}}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                   {/* Left Side - Image */}
                   {report.image_url && (
                     <div className="flex items-center justify-center">
-                      <div className="relative w-full h-64 rounded-2xl overflow-hidden shadow-lg">
+                      <div className="relative w-full h-48 sm:h-56 md:h-64 rounded-xl md:rounded-2xl overflow-hidden shadow-lg">
                         <img 
                           src={`${API_URL}${report.image_url}`} 
                           alt={report.title}
@@ -166,15 +166,15 @@ function ClientDashboard() {
                     <div>
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className={`font-bold text-xl mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{report.title}</h3>
+                          <h3 className={`font-bold text-base sm:text-lg md:text-xl mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{report.title}</h3>
                           {getStatusBadge(report)}
                         </div>
                         {user && (user.role === 'NGO' || user.role === 'Authority') && (
                           <button
                             onClick={() => deleteReport(report._id)}
-                            className="ml-3 px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition"
+                            className="ml-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition"
                           >
-                            🗑️ Delete
+                            🗑️
                           </button>
                         )}
                       </div>

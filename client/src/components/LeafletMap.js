@@ -236,23 +236,23 @@ function LeafletMap() {
   return (
     <div className="h-screen overflow-hidden">
       <div className="h-full overflow-y-auto">
-      <div className="max-w-7xl mx-auto mt-10 px-4 mb-10">
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-        <div className="bg-gray-50 px-8 py-5 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+      <div className="max-w-7xl mx-auto mt-4 sm:mt-6 md:mt-10 px-3 sm:px-4 mb-6 sm:mb-10">
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+        <div className="bg-gray-50 px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 border-b border-gray-200">
+          <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
             🌍 Interactive Map - Disaster Locations
           </h2>
-          <p className="text-gray-600 text-sm mt-1">Real-time map showing disaster reports with detailed information</p>
+          <p className="text-gray-600 text-xs sm:text-sm mt-1">Real-time map showing disaster reports</p>
         </div>
         
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6">
           {/* Map Container with relative positioning */}
           <div className="relative">
             {/* Leaflet Map Container */}
             <div 
               id="leaflet-map"
-              className="w-full rounded-xl border-2 border-gray-200 shadow-lg"
-              style={{ height: '500px' }}
+              className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 shadow-lg"
+              style={{ height: '300px', minHeight: '300px' }}
             />
             
             {/* Loading indicator */}
@@ -267,28 +267,28 @@ function LeafletMap() {
           </div>
           
           {/* Legend */}
-          <div className="mt-6 flex flex-wrap gap-4 justify-center">
+          <div className="mt-4 sm:mt-5 md:mt-6 flex flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center">
             {['Flood', 'Earthquake', 'Cyclone', 'Wildfire'].map(type => (
-              <div key={type} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+              <div key={type} className="flex items-center gap-1.5 sm:gap-2 bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg">
                 <div 
-                  className="w-4 h-4 rounded-full border-2 border-white"
+                  className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white"
                   style={{ backgroundColor: getDisasterColor(type) }}
                 ></div>
-                <span className="text-sm font-medium">{getDisasterIcon(type)} {type}</span>
+                <span className="text-xs sm:text-sm font-medium">{getDisasterIcon(type)} {type}</span>
               </div>
             ))}
           </div>
           
           {/* Statistics */}
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="mt-4 sm:mt-5 md:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
             {['Flood', 'Earthquake', 'Cyclone', 'Wildfire'].map(type => {
               const count = reports.filter(r => r.disaster_type === type).length;
               return (
-                <div key={type} className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold" style={{ color: getDisasterColor(type) }}>
+                <div key={type} className="text-center p-2 sm:p-3 bg-gray-50 rounded-lg">
+                  <div className="text-xl sm:text-2xl font-bold" style={{ color: getDisasterColor(type) }}>
                     {count}
                   </div>
-                  <div className="text-sm text-gray-600">{type} Reports</div>
+                  <div className="text-xs sm:text-sm text-gray-600">{type}</div>
                 </div>
               );
             })}
